@@ -1,6 +1,5 @@
 <p align="center">
-  <strong>Data-Base</strong><br>
-  El bot definitivo para tickets persistentes y presencia visual 🔥
+  <strong># Data-Base</strong>
 </p>
 
 # 🚀 Proyecto SuperBot
