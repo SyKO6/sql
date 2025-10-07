@@ -4,9 +4,8 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/status-Privado-ff69b4" alt="Privado">
-  <img src="https://img.shields.io/badge/version-1.0.0-green" alt="v1.0.0">
-  <img src="https://img.shields.io/badge/licencia-Prohibido%20Editar-red" alt="Prohibido Editar">
+  <img src="https://img.shields.io/badge/Status-Updated-ff69b4" alt="Privado">
+  <img src="https://img.shields.io/badge/Version-1.0.0-green" alt="v1.0.0">
 </p>
 
 ---
