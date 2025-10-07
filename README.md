@@ -1,5 +1,7 @@
-# Syk0 - DataBase
-Private...
+<p align="center">
+  <strong>Data-Base</strong><br>
+  El bot definitivo para tickets persistentes y presencia visual 🔥
+</p>
 
 # 🚀 Proyecto SuperBot
 ## 🎯 Objetivo
