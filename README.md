@@ -1,6 +1,6 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/usuario/repo/main/assets/banner.png" alt="Banner Database" width="800"/>
-  <h1>💾 Database de Información, Scripts & Bots 💾</h1>
+  <h1>💾 Database; Scripts & Bots 💾</h1>
 </p>
 
 <p align="center">
