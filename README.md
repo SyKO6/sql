@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/usuario/repo/main/assets/banner.png" alt="Banner Database" width="800"/>
+  <img src="https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/assets/banner.png" alt="Banner Database" width="800"/>
   <h1>💾 Database; Scripts & Bots 💾</h1>
 </p>
 
