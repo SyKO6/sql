@@ -37,8 +37,8 @@ atmosphere.Density = 0.48
 atmosphere.Offset = 0.0
 atmosphere.Color = Color3.fromRGB(255, 255, 255)
 atmosphere.Decay = Color3.fromRGB(255, 255, 255)
-atmosphere.Glare = 0.45
-atmosphere.Haze = 2.6
+atmosphere.Glare = 0.34
+atmosphere.Haze = 1.02
 atmosphere.Parent = Lighting
 
 -- ===== COLOR CORRECTION =====
