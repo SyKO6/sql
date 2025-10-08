@@ -25,7 +25,7 @@ local function aplicarEfectos()
 
 	-- === ILUMINACIÓN BASE ===
 	pcall(function()
-		Lighting.Brightness = 5
+		Lighting.Brightness = 2
 		Lighting.ClockTime = 0
 		Lighting.Ambient = Color3.fromRGB(210, 220, 255)
 		Lighting.OutdoorAmbient = Color3.fromRGB(210, 220, 255)
@@ -43,22 +43,6 @@ local function aplicarEfectos()
 	atmosphere.Color = Color3.fromRGB(255, 255, 255)
 	atmosphere.Decay = Color3.fromRGB(255, 255, 255)
 
-	-- === VISIÓN CLARA SIN TINTE VERDE ===
-	local cc = Lighting:FindFirstChild("VisionClara")
-	if not cc then
-		cc = Instance.new("ColorCorrectionEffect")
-		cc.Name = "VisionClara"
-		cc.Brightness = 0.4
-		cc.Contrast = 0.1
-		cc.Saturation = 0.05
-		cc.TintColor = Color3.fromRGB(255, 255, 255)
-		cc.Parent = Lighting
-	else
-		cc.Brightness = 0.4
-		cc.Contrast = 0.1
-		cc.Saturation = 0.05
-		cc.TintColor = Color3.fromRGB(255, 255, 255)
-	end
 end
 
 -- === MONITOREO PERMANENTE ===
