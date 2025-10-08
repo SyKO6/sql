@@ -116,14 +116,14 @@ local function createESP(target)
 		local isBeast = tempStats and tempStats:FindFirstChild("IsBeast")
 		local captured = tempStats and tempStats:FindFirstChild("Captured")
 		local crawling = tempStats and tempStats:FindFirstChild("IsCrawling")
-		local actionInput = tempStats and tempStats:FindFirstChild("ActionInput")
+		local currentAnim = tempStats and tempStats:FindFirstChild("CurrentAnimation")
 
 		local beastValue = (isBeast and isBeast.Value)
 		local capturedValue = (captured and captured.Value)
 		local crawlingValue = (crawling and crawling.Value)
-		local actionValue = (actionInput and actionInput.Value)
+		local currentAnimValue = (currentAnim and currentAnim.Value) or ""
 
-		-- Colores base
+		-- Color base
 		local color = Color3.fromRGB(255, 255, 255) -- Human
 		if beastValue then
 			color = Color3.fromRGB(255, 0, 0) -- Beast
@@ -134,12 +134,12 @@ local function createESP(target)
 			color = Color3.fromRGB(150, 220, 255) -- Azul hielo
 		end
 
-		-- Si el jugador tiene ActionInput activo
-		if actionValue then
+		-- Si la animación actual es "Typing"
+		if currentAnimValue == "Typing" then
 			color = Color3.fromRGB(0, 255, 0) -- Verde lima
 		end
 
-		-- Si está dentro del rango peligroso de la bestia (<30 studs)
+		-- Si está dentro del rango de peligro de la bestia (<30 studs)
 		local beast = nil
 		for _, plr in pairs(Players:GetPlayers()) do
 			local ts = plr:FindFirstChild("TempPlayerStatsModule")
@@ -155,10 +155,10 @@ local function createESP(target)
 			end
 		end
 
-		-- Si está agachado, aplicar 30% opacidad
+		-- Si está agachado (IsCrawling), baja 30% el brillo del color actual
 		if crawlingValue then
 			local r,g,b = color.R * 255, color.G * 255, color.B * 255
-			color = Color3.fromRGB(r*0.7, g*0.7, b*0.7)
+			color = Color3.fromRGB(r * 0.7, g * 0.7, b * 0.7)
 		end
 
 		highlight.OutlineColor = color
@@ -166,7 +166,9 @@ local function createESP(target)
 		nameLabel.Text = string.format("%s [%s (%.0f%%)] - %.1f", 
 			target.Name, 
 			beastValue and "Beast" or "Human", 
-			(target:FindFirstChild("SavedPlayerStatsModule") and target.SavedPlayerStatsModule:FindFirstChild("BeastChance") and target.SavedPlayerStatsModule.BeastChance.Value) or 0, 
+			(target:FindFirstChild("SavedPlayerStatsModule") 
+				and target.SavedPlayerStatsModule:FindFirstChild("BeastChance") 
+				and target.SavedPlayerStatsModule.BeastChance.Value) or 0, 
 			dist
 		)
 	end)
