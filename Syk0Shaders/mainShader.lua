@@ -16,11 +16,12 @@ end
 -- ===== AJUSTES BASE =====
 pcall(function()
 	Lighting.ClockTime = 14
-	Lighting.Brightness = 0.45
-	Lighting.OutdoorAmbient = Color3.fromRGB(45, 45, 45)
+	Lighting.Brightness = 4
+	Lighting.Ambient = Color3.fromRGB(0, 0, 0)
+	Lighting.OutdoorAmbient = Color3.fromRGB(0, 0, 0)
 	Lighting.FogStart = 0
 	Lighting.FogEnd = 1200
-	Lighting.FogColor = Color3.fromRGB(200, 210, 220)
+	Lighting.FogColor = Color3.fromRGB(0, 0, 0)
 	Lighting.GlobalShadows = true
 	Lighting.EnvironmentDiffuseScale = 1.0
 	Lighting.EnvironmentSpecularScale = 1.0
