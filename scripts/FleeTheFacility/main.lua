@@ -1,4 +1,4 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/FleeTheFacility/intro.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/intro.lua"))()
 
 --// CONFIGURACIONES INICIALES
 local Players = game:GetService("Players")
