@@ -110,8 +110,17 @@ local function createESP(target)
 	nameLabel.TextScaled = true
 	nameLabel.Parent = billboard
 
+	-- Tracker
+	local tracker = Drawing.new("Line")
+	tracker.Visible = true
+	tracker.Thickness = 2
+
 	RunService.RenderStepped:Connect(function()
-		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then return end
+		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart") and player.Character and player.Character:FindFirstChild("HumanoidRootPart")) then
+			tracker.Visible = false
+			return
+		end
+
 		local dist = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
 
 		local tempStats = target:FindFirstChild("TempPlayerStatsModule")
@@ -131,17 +140,14 @@ local function createESP(target)
 			color = Color3.fromRGB(255, 0, 0) -- Beast
 		end
 
-		-- Si el jugador está capturado
 		if capturedValue then
 			color = Color3.fromRGB(150, 220, 255) -- Azul hielo
 		end
 
-		-- Si la animación actual es "Typing"
 		if currentAnimValue == "Typing" then
 			color = Color3.fromRGB(0, 255, 0) -- Verde lima
 		end
 
-		-- Si está dentro del rango de peligro de la bestia (<30 studs)
 		local beast = nil
 		for _, plr in pairs(Players:GetPlayers()) do
 			local ts = plr:FindFirstChild("TempPlayerStatsModule")
@@ -157,7 +163,6 @@ local function createESP(target)
 			end
 		end
 
-		-- Si está agachado (IsCrawling), baja 30% el brillo del color actual
 		if crawlingValue then
 			local r,g,b = color.R * 255, color.G * 255, color.B * 255
 			color = Color3.fromRGB(r * 0.7, g * 0.7, b * 0.7)
@@ -173,6 +178,15 @@ local function createESP(target)
 				and target.SavedPlayerStatsModule.BeastChance.Value) or 0, 
 			dist
 		)
+
+		-- Tracker line
+		local startPos = camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
+		local endPos = camera:WorldToViewportPoint(target.Character.HumanoidRootPart.Position)
+
+		tracker.From = Vector2.new(startPos.X, startPos.Y)
+		tracker.To = Vector2.new(endPos.X, endPos.Y)
+		tracker.Color = color
+		tracker.Visible = true
 	end)
 end
 
