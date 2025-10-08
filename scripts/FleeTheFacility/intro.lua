@@ -16,7 +16,7 @@ blur.Size = 0
 
 -- ColorCorrection para "opacidad"
 local colorCorrection = Instance.new("ColorCorrectionEffect", Lighting)
-colorCorrection.Brightness = -0.5 -- Baja brillo 50%
+colorCorrection.Brightness = -0.8 -- Baja brillo 50%
 colorCorrection.Contrast = 0
 colorCorrection.Saturation = 0
 
@@ -105,7 +105,7 @@ desc.BackgroundTransparency = 1
 desc.TextWrapped = true
 desc.TextYAlignment = Enum.TextYAlignment.Top
 
-local descriptionText = "Script creada por mí. Modificación permitida.\nEste script mejora la experiencia visual.\nColores del ESP:\n- Verde: Amigo\n- Rojo: Enemigo\n- Azul: Neutro"
+local descriptionText = "Script creada por mí, modificación permitida."
 
 spawn(function()
 	for i = 1, #descriptionText do
