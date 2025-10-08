@@ -180,13 +180,17 @@ local function createESP(target)
 		)
 
 		-- Tracker line
-		local startPos = camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
-		local endPos = camera:WorldToViewportPoint(target.Character.HumanoidRootPart.Position)
-
-		tracker.From = Vector2.new(startPos.X, startPos.Y)
-		tracker.To = Vector2.new(endPos.X, endPos.Y)
-		tracker.Color = color
-		tracker.Visible = true
+		local startPos, startOnScreen = camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
+        local endPos, endOnScreen = camera:WorldToViewportPoint(target.Character.HumanoidRootPart.Position)
+        
+        if startOnScreen and endOnScreen then
+        	tracker.From = Vector2.new(startPos.X, startPos.Y)
+        	tracker.To = Vector2.new(endPos.X, endPos.Y)
+        	tracker.Color = color
+        	tracker.Visible = true
+        else
+        	tracker.Visible = false
+        end
 	end)
 end
 
