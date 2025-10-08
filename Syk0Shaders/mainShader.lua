@@ -1,6 +1,11 @@
+-- ⚡ Script de iluminación + efecto "motion ghost" al mover la cámara
 local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local camera = workspace.CurrentCamera
+local player = Players.LocalPlayer or Players:GetPlayers()[1]
 
--- LIMPIEZA
+-- LIMPIEZA DE ILUMINACIÓN
 for _, child in ipairs(Lighting:GetChildren()) do
 	if not child:IsA("Sky") then
 		pcall(function()
@@ -9,77 +14,134 @@ for _, child in ipairs(Lighting:GetChildren()) do
 	end
 end
 
--- AJUSTES BASE
-pcall(function()
-	Lighting.ClockTime = 14
-	Lighting.Brightness = 2
-	Lighting.OutdoorAmbient = Color3.fromRGB(160, 170, 180)
-	Lighting.FogStart = 0
-	Lighting.FogEnd = 1000
-	Lighting.FogColor = Color3.fromRGB(200, 210, 220)
-	Lighting.GlobalShadows = true
-end)
+-- EFECTOS BASE
+Lighting.ClockTime = 14
+Lighting.Brightness = 2
+Lighting.OutdoorAmbient = Color3.fromRGB(160, 170, 180)
+Lighting.FogStart = 0
+Lighting.FogEnd = 1000
+Lighting.FogColor = Color3.fromRGB(200, 210, 220)
+Lighting.GlobalShadows = true
+Lighting.EnvironmentDiffuseScale = 1.5
+Lighting.EnvironmentSpecularScale = 1.5
 
--- ATMOSPHERE
 local atmosphere = Instance.new("Atmosphere")
-atmosphere.Name = "RealisticAtmosphere"
 atmosphere.Density = 0.45
-atmosphere.Offset = 0.0
 atmosphere.Color = Color3.fromRGB(155, 180, 200)
+atmosphere.Decay = Color3.fromRGB(80, 85, 100)
 atmosphere.Parent = Lighting
 
--- COLOR CORRECTION
 local cc = Instance.new("ColorCorrectionEffect")
-cc.Name = "RealisticColorCorrection"
-cc.Brightness = 0.2
-cc.Contrast = 0.3
-cc.Saturation = 0.3
-cc.TintColor = Color3.fromRGB(255, 250, 240)
+cc.Contrast = 0.4
+cc.Saturation = 0.6
+cc.Brightness = 0.25
+cc.TintColor = Color3.fromRGB(255, 240, 230)
 cc.Parent = Lighting
 
--- BLOOM
 local bloom = Instance.new("BloomEffect")
-bloom.Name = "RealisticBloom"
-bloom.Intensity = 10.0
-bloom.Size = 24
+bloom.Intensity = 8
+bloom.Size = 40
 bloom.Threshold = 0.8
 bloom.Parent = Lighting
 
--- SUNRAYS
 local sunRays = Instance.new("SunRaysEffect")
-sunRays.Name = "RealisticSunRays"
 sunRays.Intensity = 0.6
-sunRays.Spread = 0.2
+sunRays.Spread = 0.25
 sunRays.Parent = Lighting
 
--- DEPTH OF FIELD
 local dof = Instance.new("DepthOfFieldEffect")
-dof.Name = "RealisticDepthOfField"
 dof.FocusDistance = 60
 dof.InFocusRadius = 20
 dof.FarIntensity = 0.6
-dof.NearIntensity = 0.0
 dof.Parent = Lighting
 
--- BLUR
-local blur = Instance.new("BlurEffect")
-blur.Name = "RealisticBlur"
-blur.Size = 4
-blur.Parent = Lighting
+-- UI para simular efecto de frame repeat
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "MotionGhostEffect"
+screenGui.IgnoreGuiInset = true
+screenGui.ResetOnSpawn = false
+screenGui.DisplayOrder = 999999
+screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- SKY (si no hay uno existente)
-local hasSky = false8
-for _, c in ipairs(Lighting:GetChildren()) do
-	if c:IsA("Sky") then
-		hasSky = true
-		break
+local ghostFrame = Instance.new("ImageLabel")
+ghostFrame.BackgroundTransparency = 1
+ghostFrame.Size = UDim2.new(1, 0, 1, 0)
+ghostFrame.ImageTransparency = 1
+ghostFrame.ZIndex = 0
+ghostFrame.Parent = screenGui
+
+-- Captura dinámica del frame
+local lastCFrame = camera.CFrame
+local lastUpdate = 0
+local fadeSpeed = 0.1
+local transparency = 1
+
+RunService.RenderStepped:Connect(function(dt)
+	local movement = (camera.CFrame.Position - lastCFrame.Position).Magnitude
+	if movement > 1 then
+		-- Tomar un snapshot del frame actual
+		local colorFrame = Instance.new("ImageLabel")
+		colorFrame.Size = UDim2.new(1, 0, 1, 0)
+		colorFrame.BackgroundColor3 = Color3.new(1, 1, 1)
+		colorFrame.BackgroundTransparency = 0.95
+		colorFrame.BorderSizePixel = 0
+		colorFrame.ZIndex = 1
+		colorFrame.Parent = screenGui
+		
+		-- Efecto de “fade out” de los rastros
+		task.spawn(function(f)
+			for i = 1, 10 do
+				f.BackgroundTransparency = f.BackgroundTransparency + 0.05
+				task.wait(0.03)
+			end
+			f:Destroy()
+		end, colorFrame)
 	end
-end
+	
+	lastCFrame = camera.CFrame
+end)
 
-if not hasSky then
-	local sky = Instance.new("Sky")
-	sky.Name = "RealisticSky"
-	sky.Parent = Lighting
-end
+-- EFECTO INICIAL (desvanecido de entrada)
+task.spawn(function()
+	local black = Instance.new("Frame")
+	black.BackgroundColor3 = Color3.new(0, 0, 0)
+	black.Size = UDim2.new(1, 0, 1, 0)
+	black.BackgroundTransparency = 1
+	black.Parent = screenGui
+	for i = 1, 30 do
+		black.BackgroundTransparency = 1 - (i / 30)
+		task.wait(0.03)
+	end
+	for i = 1, 60 do
+		black.BackgroundTransparency = i / 60
+		task.wait(0.03)
+	end
+	black:Destroy()
+end)
 
-print("Iluminación realista aplicada con reemplazo completo.")
+-- EFECTO DE VIDA BAJA
+task.spawn(function()
+	while task.wait(0.1) do
+		local humanoid = player and player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			local hp = humanoid.Health / humanoid.MaxHealth
+			if hp < 0.15 then
+				local shade = Instance.new("Frame")
+				shade.BackgroundColor3 = Color3.new(1, 0, 0)
+				shade.Size = UDim2.new(1, 0, 1, 0)
+				shade.BackgroundTransparency = 0.9 + hp * 0.5
+				shade.ZIndex = 2
+				shade.Parent = screenGui
+				task.spawn(function(s)
+					for i = 1, 15 do
+						s.BackgroundTransparency = s.BackgroundTransparency + 0.05
+						task.wait(0.03)
+					end
+					s:Destroy()
+				end, shade)
+			end
+		end
+	end
+end)
+
+print("Iluminación realista + efecto motion ghost activado.")
