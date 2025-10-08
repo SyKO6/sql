@@ -7,7 +7,7 @@ local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
 
 --// Variables
-local targetWalkSpeed = 18.8
+local targetWalkSpeed = 18.6
 local fov = 80
 
 --// Aplicar configuración visual
@@ -76,13 +76,13 @@ local function createESP(target)
 	highlight.Adornee = target.Character
 	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 	highlight.FillTransparency = 1
-	highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+	highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
 	highlight.OutlineTransparency = 0
 	highlight.Parent = target.Character
 
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "NameTag"
-	billboard.Size = UDim2.new(0, 200, 0, 50)
+	billboard.Size = UDim2.new(0, 200, 0, 30)
 	billboard.AlwaysOnTop = true
 	billboard.Adornee = target.Character:WaitForChild("Head")
 	billboard.Parent = target.Character
@@ -90,7 +90,7 @@ local function createESP(target)
 	local nameLabel = Instance.new("TextLabel")
 	nameLabel.Size = UDim2.new(1, 0, 1, 0)
 	nameLabel.BackgroundTransparency = 1
-	nameLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+	nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	nameLabel.TextStrokeTransparency = 0.5
 	nameLabel.Font = Enum.Font.GothamBold
 	nameLabel.TextScaled = true
@@ -99,7 +99,7 @@ local function createESP(target)
 	RunService.RenderStepped:Connect(function()
 		if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
 			local dist = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
-			nameLabel.Text = string.format("%s\n[%.1f]", target.Name, dist)
+			nameLabel.Text = string.format("%s [%.1f]", target.Name, dist)
 		end
 	end)
 end
