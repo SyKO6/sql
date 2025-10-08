@@ -108,8 +108,18 @@ local function createESP(target)
 	nameLabel.TextScaled = true
 	nameLabel.Parent = billboard
 
+	--// === TRACKER 3D FINO Y SEMITRANSPARENTE ===
+	local tracker = Drawing.new("Line")
+	tracker.Thickness = 1.3
+	tracker.Transparency = 0.65
+	tracker.Visible = true
+
 	RunService.RenderStepped:Connect(function()
-		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then return end
+		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then
+			tracker.Visible = false
+			return
+		end
+
 		local dist = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
 
 		local tempStats = target:FindFirstChild("TempPlayerStatsModule")
@@ -171,6 +181,19 @@ local function createESP(target)
 				and target.SavedPlayerStatsModule.BeastChance.Value) or 0, 
 			dist
 		)
+
+		--// === LÓGICA DEL TRACKER 3D ===
+		local rootPos = target.Character:FindFirstChild("HumanoidRootPart").Position
+		local screenPos, onScreen = camera:WorldToViewportPoint(rootPos)
+
+		if onScreen then
+			tracker.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+			tracker.To = Vector2.new(screenPos.X, screenPos.Y)
+			tracker.Color = color
+			tracker.Visible = true
+		else
+			tracker.Visible = false
+		end
 	end)
 end
 
