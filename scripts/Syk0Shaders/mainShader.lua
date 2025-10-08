@@ -134,7 +134,7 @@ end
 local lastLookVector = camera.CFrame.LookVector
 local blurDecaySpeed = 3.5   -- qué tan rápido se desvanece el blur
 local blurIncreaseSpeed = 12 -- qué tan rápido aparece
-local blurThreshold = 0.18   -- 🔥 sensibilidad MUY alta (debe ser un giro rapidísimo para activar)
+local blurThreshold = 0.22   -- 🔥 sensibilidad MUY alta (debe ser un giro rapidísimo para activar)
 
 RunService.RenderStepped:Connect(function(dt)
 	local currentLookVector = camera.CFrame.LookVector
