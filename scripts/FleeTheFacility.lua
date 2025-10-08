@@ -7,7 +7,8 @@ local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
 
 --// Variables
-local targetWalkSpeed = 18.6
+local normalSpeed = 18.8
+local crawlSpeed = 10.8
 local fov = 80
 
 --// Aplicar configuración visual
@@ -36,7 +37,7 @@ task.spawn(function()
 	end
 end)
 
---// Función para asegurar la velocidad del jugador
+--// Sistema de velocidad dinámica
 local function enforceWalkSpeed()
 	local character = player.Character or player.CharacterAdded:Wait()
 	local humanoid = character:WaitForChild("Humanoid")
@@ -52,23 +53,28 @@ local function enforceWalkSpeed()
 			local crawling = isCrawling.Value
 			local beast = isBeast.Value
 
-			-- Solo aplicar si NO está arrastrándose y NO es bestia
-			if not crawling and not beast then
-				if humanoid.WalkSpeed ~= targetWalkSpeed then
-					humanoid.WalkSpeed = targetWalkSpeed
+			if not beast then
+				if crawling then
+					if humanoid.WalkSpeed ~= crawlSpeed then
+						humanoid.WalkSpeed = crawlSpeed
+					end
+				else
+					if humanoid.WalkSpeed ~= normalSpeed then
+						humanoid.WalkSpeed = normalSpeed
+					end
 				end
 			end
 		end
 	end)
 end
 
---// Esperar personaje y aplicar la lógica
+--// Aplicar la lógica al personaje actual y futuros
 if player.Character then
 	enforceWalkSpeed()
 end
 player.CharacterAdded:Connect(enforceWalkSpeed)
 
---// ESP (ver jugadores con nombre, distancia y rol)
+--// ESP (nombre, tipo, chance y distancia)
 local function createESP(target)
 	if target == player then return end
 
@@ -81,8 +87,9 @@ local function createESP(target)
 
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "NameTag"
-	billboard.Size = UDim2.new(0, 220, 0, 18)
+	billboard.Size = UDim2.new(0, 260, 0, 20)
 	billboard.AlwaysOnTop = true
+	billboard.ExtentsOffset = Vector3.new(0, 3, 0) -- 👈 Mueve el texto encima de la cabeza
 	billboard.Adornee = target.Character:WaitForChild("Head")
 	billboard.Parent = target.Character
 
@@ -97,25 +104,32 @@ local function createESP(target)
 
 	RunService.RenderStepped:Connect(function()
 		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then return end
+
 		local dist = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
 
 		local tempStats = target:FindFirstChild("TempPlayerStatsModule")
-		local isBeast = tempStats and tempStats:FindFirstChild("IsBeast")
-		local isBeastValue = (isBeast and isBeast.Value) or false
+		local savedStats = target:FindFirstChild("SavedPlayerStatsModule")
 
-		-- Actualizar color del contorno según rol
-		if isBeastValue then
+		local isBeast = tempStats and tempStats:FindFirstChild("IsBeast")
+		local beastValue = (isBeast and isBeast.Value) or false
+
+		local beastChance = savedStats and savedStats:FindFirstChild("BeastChance")
+		local chanceValue = (beastChance and beastChance.Value) or 0
+
+		-- Cambiar color según tipo
+		if beastValue then
 			highlight.OutlineColor = Color3.fromRGB(255, 0, 0) -- rojo
 		else
 			highlight.OutlineColor = Color3.fromRGB(255, 255, 255) -- blanco
 		end
 
-		-- Mostrar texto con rol
-		nameLabel.Text = string.format("%s - %.1f - %s", target.Name, dist, isBeastValue and "Beast" or "Human")
+		-- Mostrar formato: Nombre [Beast / Human (Chance%)] - Studs
+		local role = beastValue and "Beast" or "Human"
+		nameLabel.Text = string.format("%s [%s (%d%%)] - %.1f", target.Name, role, chanceValue, dist)
 	end)
 end
 
---// Crear ESP para todos los jugadores
+--// Aplicar ESP a todos los jugadores existentes y nuevos
 for _, plr in pairs(Players:GetPlayers()) do
 	if plr ~= player then
 		plr.CharacterAdded:Connect(function()
