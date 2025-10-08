@@ -94,9 +94,8 @@ local function createESP(target)
 
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "NameTag"
-	billboard.Size = UDim2.new(0, 260, 0, 20)
+	billboard.Size = UDim2.new(0, 220, 0, 18)
 	billboard.AlwaysOnTop = true
-	billboard.ExtentsOffset = Vector3.new(0, 3, 0)
 	billboard.Adornee = target.Character:WaitForChild("Head")
 	billboard.Parent = target.Character
 
@@ -110,69 +109,66 @@ local function createESP(target)
 	nameLabel.Parent = billboard
 
 	RunService.RenderStepped:Connect(function()
-		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart") and player.Character and player.Character:FindFirstChild("HumanoidRootPart")) then 
-			return 
-		end
-
+		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then return end
 		local dist = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
 
 		local tempStats = target:FindFirstChild("TempPlayerStatsModule")
-		local savedStats = target:FindFirstChild("SavedPlayerStatsModule")
-
 		local isBeast = tempStats and tempStats:FindFirstChild("IsBeast")
-		local isCrawling = tempStats and tempStats:FindFirstChild("IsCrawling")
-		local isCaptured = tempStats and tempStats:FindFirstChild("Captured")
+		local captured = tempStats and tempStats:FindFirstChild("Captured")
+		local crawling = tempStats and tempStats:FindFirstChild("IsCrawling")
+		local actionInput = tempStats and tempStats:FindFirstChild("ActionInput")
 
-		local beastValue = (isBeast and isBeast.Value) or false
-		local crawlValue = (isCrawling and isCrawling.Value) or false
-		local capturedValue = (isCaptured and isCaptured.Value) or false
+		local beastValue = (isBeast and isBeast.Value)
+		local capturedValue = (captured and captured.Value)
+		local crawlingValue = (crawling and crawling.Value)
+		local actionValue = (actionInput and actionInput.Value)
 
-		local beastChance = savedStats and savedStats:FindFirstChild("BeastChance")
-		local chanceValue = (beastChance and beastChance.Value) or 0
+		-- Colores base
+		local color = Color3.fromRGB(255, 255, 255) -- Human
+		if beastValue then
+			color = Color3.fromRGB(255, 0, 0) -- Beast
+		end
 
-		-- Buscar si hay bestia para medir distancia
-		local nearestBeastDist = math.huge
+		-- Si el jugador está capturado
+		if capturedValue then
+			color = Color3.fromRGB(150, 220, 255) -- Azul hielo
+		end
+
+		-- Si el jugador tiene ActionInput activo
+		if actionValue then
+			color = Color3.fromRGB(0, 255, 0) -- Verde lima
+		end
+
+		-- Si está dentro del rango peligroso de la bestia (<30 studs)
+		local beast = nil
 		for _, plr in pairs(Players:GetPlayers()) do
-			if plr ~= target then
-				local stats = plr:FindFirstChild("TempPlayerStatsModule")
-				local isB = stats and stats:FindFirstChild("IsBeast")
-				if isB and isB.Value and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-					local d = (target.Character.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude
-					if d < nearestBeastDist then
-						nearestBeastDist = d
-					end
-				end
+			local ts = plr:FindFirstChild("TempPlayerStatsModule")
+			if ts and ts:FindFirstChild("IsBeast") and ts.IsBeast.Value then
+				beast = plr
+				break
+			end
+		end
+		if beast and beast.Character and beast.Character:FindFirstChild("HumanoidRootPart") then
+			local beastDist = (beast.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
+			if beastDist < 30 and not beastValue then
+				color = Color3.fromRGB(255, 180, 50) -- Naranja-amarillo
 			end
 		end
 
-		-- Colores base
-		local textColor = Color3.fromRGB(255, 255, 255)
-		local outlineColor = Color3.fromRGB(255, 255, 255)
-
-		-- Prioridad de color
-		if beastValue then
-			textColor = Color3.fromRGB(255, 0, 0)
-			outlineColor = Color3.fromRGB(255, 0, 0)
-		elseif capturedValue then
-			textColor = Color3.fromRGB(80, 200, 255)
-			outlineColor = Color3.fromRGB(80, 200, 255)
-		elseif nearestBeastDist < 20 then
-			textColor = Color3.fromRGB(255, 170, 0)
-			outlineColor = Color3.fromRGB(255, 140, 0)
+		-- Si está agachado, aplicar 30% opacidad
+		if crawlingValue then
+			local r,g,b = color.R * 255, color.G * 255, color.B * 255
+			color = Color3.fromRGB(r*0.7, g*0.7, b*0.7)
 		end
 
-		-- Si está agachado → mismo color, pero 30 % más oscuro
-		if crawlValue then
-			textColor = darkenColor(textColor, 0.3)
-			outlineColor = darkenColor(outlineColor, 0.3)
-		end
-
-		nameLabel.TextColor3 = textColor
-		highlight.OutlineColor = outlineColor
-
-		-- Mostrar formato: Nombre [Beast / Human (Chance%)] - Studs
-		local role = beastValue and "Beast" or "Human"
-		nameLabel.Text = string.format("%s [%s (%d%%)] - %.1f", target.Name, role, chanceValue, dist)
+		highlight.OutlineColor = color
+		nameLabel.TextColor3 = color
+		nameLabel.Text = string.format("%s [%s (%.0f%%)] - %.1f", 
+			target.Name, 
+			beastValue and "Beast" or "Human", 
+			(target:FindFirstChild("SavedPlayerStatsModule") and target.SavedPlayerStatsModule:FindFirstChild("BeastChance") and target.SavedPlayerStatsModule.BeastChance.Value) or 0, 
+			dist
+		)
 	end)
 end
 
