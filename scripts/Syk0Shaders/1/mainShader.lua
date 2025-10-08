@@ -1,3 +1,5 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/intro.lua"))()
+
 -- 🌅 ILUMINACIÓN REALISTA + EFECTOS VISUALES + BLUR DINÁMICO
 
 -- ===== SERVICIOS =====
@@ -15,12 +17,12 @@ end
 
 -- ===== AJUSTES BASE =====
 pcall(function()
-	Lighting.ClockTime = 14
-	Lighting.Brightness = 4.5
+	Lighting.ClockTime = 13.2
+	Lighting.Brightness = 3.5
 	Lighting.Ambient = Color3.fromRGB(0, 0, 0)
 	Lighting.OutdoorAmbient = Color3.fromRGB(0, 0, 0)
 	Lighting.FogStart = 0
-	Lighting.FogEnd = 1200
+	Lighting.FogEnd = 1500
 	Lighting.FogColor = Color3.fromRGB(0, 0, 0)
 	Lighting.GlobalShadows = true
 	Lighting.EnvironmentDiffuseScale = 1.0
@@ -35,17 +37,17 @@ atmosphere.Density = 0.45
 atmosphere.Offset = 0.0
 atmosphere.Color = Color3.fromRGB(255, 255, 255)
 atmosphere.Decay = Color3.fromRGB(255, 255, 255)
-atmosphere.Glare = 0.3
-atmosphere.Haze = 1.5
+atmosphere.Glare = 4.0
+atmosphere.Haze = 10.0
 atmosphere.Parent = Lighting
 
 -- ===== COLOR CORRECTION =====
 local cc = Instance.new("ColorCorrectionEffect")
 cc.Name = "RealisticColorCorrection"
-cc.Brightness = 0.15
-cc.Contrast = 0.2
-cc.Saturation = 0.25
-cc.TintColor = Color3.fromRGB(230, 230, 255)
+cc.Brightness = -0.1
+cc.Contrast = 0.3
+cc.Saturation = 0.35
+cc.TintColor = Color3.fromRGB(230, 210, 255)
 cc.Parent = Lighting
 
 -- ===== BLOOM =====
@@ -53,14 +55,14 @@ local bloom = Instance.new("BloomEffect")
 bloom.Name = "RealisticBloom"
 bloom.Intensity = 10.0
 bloom.Size = 50
-bloom.Threshold = 2.0
+bloom.Threshold = 10.0
 bloom.Parent = Lighting
 
 -- ===== SUNRAYS =====
 local sunRays = Instance.new("SunRaysEffect")
 sunRays.Name = "RealisticSunRays"
-sunRays.Intensity = 2.0
-sunRays.Spread = 2.0
+sunRays.Intensity = 8.0
+sunRays.Spread = 8.0
 sunRays.Parent = Lighting
 
 -- ===== DEPTH OF FIELD =====
@@ -68,8 +70,8 @@ local dof = Instance.new("DepthOfFieldEffect")
 dof.Name = "RealisticDepthOfField"
 dof.FocusDistance = 60
 dof.InFocusRadius = 20
-dof.FarIntensity = 0.6
-dof.NearIntensity = 0.2
+dof.FarIntensity = 1.0
+dof.NearIntensity = 1.0
 dof.Parent = Lighting
 
 -- ===== BLUR =====
@@ -132,9 +134,9 @@ end
 
 -- ===== BLUR POR MOVIMIENTO DE CÁMARA (SOLO GIROS EXTREMADAMENTE BRUSCOS) =====
 local lastLookVector = camera.CFrame.LookVector
-local blurDecaySpeed = 3.5   -- qué tan rápido se desvanece el blur
-local blurIncreaseSpeed = 12 -- qué tan rápido aparece
-local blurThreshold = 0.22   -- 🔥 sensibilidad MUY alta (debe ser un giro rapidísimo para activar)
+local blurDecaySpeed = 2   -- qué tan rápido se desvanece el blur
+local blurIncreaseSpeed = 8 -- qué tan rápido aparece
+local blurThreshold = 0.34   -- 🔥 sensibilidad MUY alta (debe ser un giro rapidísimo para activar)
 
 RunService.RenderStepped:Connect(function(dt)
 	local currentLookVector = camera.CFrame.LookVector
