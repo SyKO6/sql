@@ -112,86 +112,86 @@ local function createESP(target)
 
 	-- Tracker
 	local tracker = Drawing.new("Line")
-	tracker.Visible = true
-	tracker.Thickness = 2
-
-	RunService.RenderStepped:Connect(function()
-		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart") and player.Character and player.Character:FindFirstChild("HumanoidRootPart")) then
-			tracker.Visible = false
-			return
-		end
-
-		local dist = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
-
-		local tempStats = target:FindFirstChild("TempPlayerStatsModule")
-		local isBeast = tempStats and tempStats:FindFirstChild("IsBeast")
-		local captured = tempStats and tempStats:FindFirstChild("Captured")
-		local crawling = tempStats and tempStats:FindFirstChild("IsCrawling")
-		local currentAnim = tempStats and tempStats:FindFirstChild("CurrentAnimation")
-
-		local beastValue = (isBeast and isBeast.Value)
-		local capturedValue = (captured and captured.Value)
-		local crawlingValue = (crawling and crawling.Value)
-		local currentAnimValue = (currentAnim and currentAnim.Value) or ""
-
-		-- Color base
-		local color = Color3.fromRGB(255, 255, 255) -- Human
-		if beastValue then
-			color = Color3.fromRGB(255, 0, 0) -- Beast
-		end
-
-		if capturedValue then
-			color = Color3.fromRGB(150, 220, 255) -- Azul hielo
-		end
-
-		if currentAnimValue == "Typing" then
-			color = Color3.fromRGB(0, 255, 0) -- Verde lima
-		end
-
-		local beast = nil
-		for _, plr in pairs(Players:GetPlayers()) do
-			local ts = plr:FindFirstChild("TempPlayerStatsModule")
-			if ts and ts:FindFirstChild("IsBeast") and ts.IsBeast.Value then
-				beast = plr
-				break
-			end
-		end
-		if beast and beast.Character and beast.Character:FindFirstChild("HumanoidRootPart") then
-			local beastDist = (beast.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
-			if beastDist < 30 and not beastValue then
-				color = Color3.fromRGB(255, 180, 50) -- Naranja-amarillo
-			end
-		end
-
-		if crawlingValue then
-			local r,g,b = color.R * 255, color.G * 255, color.B * 255
-			color = Color3.fromRGB(r * 0.7, g * 0.7, b * 0.7)
-		end
-
-		highlight.OutlineColor = color
-		nameLabel.TextColor3 = color
-		nameLabel.Text = string.format("%s [%s (%.0f%%)] - %.1f", 
-			target.Name, 
-			beastValue and "Beast" or "Human", 
-			(target:FindFirstChild("SavedPlayerStatsModule") 
-				and target.SavedPlayerStatsModule:FindFirstChild("BeastChance") 
-				and target.SavedPlayerStatsModule.BeastChance.Value) or 0, 
-			dist
-		)
-
-		-- Tracker line
-		local startPos, startOnScreen = camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
-        local endPos, endOnScreen = camera:WorldToViewportPoint(target.Character.HumanoidRootPart.Position)
-        
-        if startOnScreen and endOnScreen then
-        	tracker.From = Vector2.new(startPos.X, startPos.Y)
-        	tracker.To = Vector2.new(endPos.X, endPos.Y)
-        	tracker.Color = color
-        	tracker.Visible = true
-        else
-        	tracker.Visible = false
-        end
-	end)
+	-- Tracker fino y semi-transparente
+    tracker.Thickness = 1.5 -- más fino
+    tracker.Transparency = 0.6 -- semi-transparente
+    
+    RunService.RenderStepped:Connect(function()
+    	if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart") and player.Character and player.Character:FindFirstChild("HumanoidRootPart")) then
+    		tracker.Visible = false
+    		return
+    	end
+    
+    	local dist = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
+    
+    	local tempStats = target:FindFirstChild("TempPlayerStatsModule")
+    	local isBeast = tempStats and tempStats:FindFirstChild("IsBeast")
+    	local captured = tempStats and tempStats:FindFirstChild("Captured")
+    	local crawling = tempStats and tempStats:FindFirstChild("IsCrawling")
+    	local currentAnim = tempStats and tempStats:FindFirstChild("CurrentAnimation")
+    
+    	local beastValue = (isBeast and isBeast.Value)
+    	local capturedValue = (captured and captured.Value)
+    	local crawlingValue = (crawling and crawling.Value)
+    	local currentAnimValue = (currentAnim and currentAnim.Value) or ""
+    
+    	local color = Color3.fromRGB(255, 255, 255) -- Human
+    	if beastValue then
+    		color = Color3.fromRGB(255, 0, 0) -- Beast
+    	end
+    
+    	if capturedValue then
+    		color = Color3.fromRGB(150, 220, 255) -- Azul hielo
+    	end
+    
+    	if currentAnimValue == "Typing" then
+    		color = Color3.fromRGB(0, 255, 0) -- Verde lima
+    	end
+    
+    	local beast = nil
+    	for _, plr in pairs(Players:GetPlayers()) do
+    		local ts = plr:FindFirstChild("TempPlayerStatsModule")
+    		if ts and ts:FindFirstChild("IsBeast") and ts.IsBeast.Value then
+    			beast = plr
+    			break
+    		end
+    	end
+    	if beast and beast.Character and beast.Character:FindFirstChild("HumanoidRootPart") then
+    		local beastDist = (beast.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
+    		if beastDist < 30 and not beastValue then
+    			color = Color3.fromRGB(255, 180, 50) -- Naranja-amarillo
+    		end
+    	end
+    
+    	if crawlingValue then
+    		local r,g,b = color.R * 255, color.G * 255, color.B * 255
+    		color = Color3.fromRGB(r * 0.7, g * 0.7, b * 0.7)
+    	end
+    
+    	highlight.OutlineColor = color
+    	nameLabel.TextColor3 = color
+    	nameLabel.Text = string.format("%s [%s (%.0f%%)] - %.1f", 
+    		target.Name, 
+    		beastValue and "Beast" or "Human", 
+    		(target:FindFirstChild("SavedPlayerStatsModule") 
+    			and target.SavedPlayerStatsModule:FindFirstChild("BeastChance") 
+    			and target.SavedPlayerStatsModule.BeastChance.Value) or 0, 
+    		dist
+    	)
+    
+    	-- Tracker line optimizado
+    	local startPos, startOnScreen = camera:WorldToViewportPoint(camera.CFrame.Position)
+    	local endPos, endOnScreen = camera:WorldToViewportPoint(target.Character.HumanoidRootPart.Position)
+    
+    	if startOnScreen and endOnScreen then
+    		tracker.From = Vector2.new(startPos.X, startPos.Y)
+    		tracker.To = Vector2.new(endPos.X, endPos.Y)
+    		tracker.Color = color
+    		tracker.Visible = true
+    	else
+    		tracker.Visible = false
+    	end
+    end)
 end
 
 for _, plr in pairs(Players:GetPlayers()) do
