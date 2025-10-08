@@ -1,9 +1,10 @@
--- 🌅 ILUMINACIÓN REALISTA + EFECTOS VISUALES + RASTRO DEL PERSONAJE
+-- 🌅 ILUMINACIÓN REALISTA + EFECTOS VISUALES + BLUR DINÁMICO
 
 -- ===== SERVICIOS =====
 local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
 -- ===== LIMPIEZA DE LIGHTING =====
 for _, child in ipairs(Lighting:GetChildren()) do
@@ -15,11 +16,11 @@ end
 -- ===== AJUSTES BASE =====
 pcall(function()
 	Lighting.ClockTime = 14
-	Lighting.Brightness = 1.2
-	Lighting.OutdoorAmbient = Color3.fromRGB(0, 0, 0)
+	Lighting.Brightness = 0.45
+	Lighting.OutdoorAmbient = Color3.fromRGB(45, 45, 45)
 	Lighting.FogStart = 0
-	Lighting.FogEnd = 1500
-	Lighting.FogColor = Color3.fromRGB(240, 240, 255)
+	Lighting.FogEnd = 1200
+	Lighting.FogColor = Color3.fromRGB(200, 210, 220)
 	Lighting.GlobalShadows = true
 	Lighting.EnvironmentDiffuseScale = 1.0
 	Lighting.EnvironmentSpecularScale = 1.0
@@ -31,8 +32,8 @@ local atmosphere = Instance.new("Atmosphere")
 atmosphere.Name = "RealisticAtmosphere"
 atmosphere.Density = 0.45
 atmosphere.Offset = 0.0
-atmosphere.Color = Color3.fromRGB(155, 180, 200)
-atmosphere.Decay = Color3.fromRGB(120, 130, 150)
+atmosphere.Color = Color3.fromRGB(255, 255, 255)
+atmosphere.Decay = Color3.fromRGB(255, 255, 255)
 atmosphere.Glare = 0.3
 atmosphere.Haze = 1.5
 atmosphere.Parent = Lighting
@@ -40,25 +41,25 @@ atmosphere.Parent = Lighting
 -- ===== COLOR CORRECTION =====
 local cc = Instance.new("ColorCorrectionEffect")
 cc.Name = "RealisticColorCorrection"
-cc.Brightness = 0.06
-cc.Contrast = 0.2
-cc.Saturation = 0.5
-cc.TintColor = Color3.fromRGB(246, 246, 255)
+cc.Brightness = 0.2
+cc.Contrast = 0.12
+cc.Saturation = 0.2
+cc.TintColor = Color3.fromRGB(230, 230, 255)
 cc.Parent = Lighting
 
 -- ===== BLOOM =====
 local bloom = Instance.new("BloomEffect")
 bloom.Name = "RealisticBloom"
-bloom.Intensity = 6.0
-bloom.Size = 24
-bloom.Threshold = 0.8
+bloom.Intensity = 10.0
+bloom.Size = 50
+bloom.Threshold = 2.0
 bloom.Parent = Lighting
 
 -- ===== SUNRAYS =====
 local sunRays = Instance.new("SunRaysEffect")
 sunRays.Name = "RealisticSunRays"
-sunRays.Intensity = 1.0
-sunRays.Spread = 1.0
+sunRays.Intensity = 2.0
+sunRays.Spread = 2.0
 sunRays.Parent = Lighting
 
 -- ===== DEPTH OF FIELD =====
@@ -67,7 +68,7 @@ dof.Name = "RealisticDepthOfField"
 dof.FocusDistance = 60
 dof.InFocusRadius = 20
 dof.FarIntensity = 0.6
-dof.NearIntensity = 0.0
+dof.NearIntensity = 0.2
 dof.Parent = Lighting
 
 -- ===== BLUR =====
@@ -76,7 +77,7 @@ blur.Name = "RealisticBlur"
 blur.Size = 100
 blur.Parent = Lighting
 
--- Suaviza el blur inicial
+-- Suaviza el blur inicial (fade-in de entrada)
 task.spawn(function()
 	for i = 100, 0, -2 do
 		blur.Size = i
@@ -107,73 +108,72 @@ if not hasSky then
 	sky.Parent = Lighting
 end
 
--- ===== BLUR DINÁMICO POR VIDA =====
+-- ===== VARIABLES =====
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
+local camera = workspace.CurrentCamera
 
-humanoid.HealthChanged:Connect(function(hp)
-	local max = humanoid.MaxHealth
-	local percent = hp / max
-	if percent < 0.15 then
-		local intensity = math.clamp((0.15 - percent) * 100, 0, 15)
-		blur.Size = intensity
-	else
-		blur.Size = 0
-	end
-end)
+local currentBlur = 0
+local blurTarget = 0
 
--- ===== RASTRO DEL PERSONAJE =====
-character:WaitForChild("HumanoidRootPart")
-
-local delayBetweenGhosts = 0.1
-local ghostDuration = 0.5
-local ghostTransparencyStep = 0.1
-local ghostColor = Color3.fromRGB(255, 255, 255)
-
-local function createGhost()
-	if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-
-	local ghost = character:Clone()
-	ghost.Name = "AfterImageGhost"
-
-	for _, obj in ipairs(ghost:GetDescendants()) do
-		if obj:IsA("Script") or obj:IsA("LocalScript") then
-			obj:Destroy()
-		elseif obj:IsA("BasePart") then
-			obj.Anchored = true
-			obj.CanCollide = false
-			obj.Color = ghostColor
-			obj.Material = Enum.Material.ForceField
-			obj.Transparency = 0.4
-		end
-	end
-
-	ghost.Parent = workspace
-
+-- ===== FUNCIÓN SUAVIZADO =====
+local function tweenBlur(target, speed)
 	task.spawn(function()
-		for i = 1, 6 do
-			for _, part in ipairs(ghost:GetDescendants()) do
-				if part:IsA("BasePart") then
-					part.Transparency = part.Transparency + ghostTransparencyStep
-				end
-			end
-			task.wait(ghostDuration / 6)
+		local step = (target - currentBlur) / (speed * 30)
+		for i = 1, math.abs(speed * 30) do
+			currentBlur += step
+			blur.Size = math.clamp(currentBlur, 0, 15)
+			task.wait(1/30)
 		end
-		ghost:Destroy()
 	end)
 end
 
-local lastPos = character.HumanoidRootPart.Position
-RunService.RenderStepped:Connect(function()
-	if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-	local root = character.HumanoidRootPart
-	local moved = (root.Position - lastPos).Magnitude > 0.2
-	if moved then
-		createGhost()
+-- ===== BLUR POR MOVIMIENTO DE CÁMARA =====
+local lastCFrame = camera.CFrame
+RunService.RenderStepped:Connect(function(dt)
+	local delta = (camera.CFrame.Position - lastCFrame.Position).Magnitude
+	local rotationChange = (camera.CFrame.LookVector - lastCFrame.LookVector).Magnitude
+	lastCFrame = camera.CFrame
+
+	-- Movimiento moderado = blur leve
+	local movementStrength = math.clamp(rotationChange * 100 + delta * 3, 0, 1)
+	local targetBlur = movementStrength * 8
+
+	blurTarget = targetBlur
+	if math.abs(currentBlur - blurTarget) > 0.2 then
+		if blurTarget > currentBlur then
+			tweenBlur(blurTarget, 0.3)
+		else
+			tweenBlur(blurTarget, 0.6)
+		end
 	end
-	lastPos = root.Position
-	task.wait(delayBetweenGhosts)
 end)
 
-print("🌄 Iluminación realista y efectos aplicados correctamente.")
+-- ===== BLUR RÁPIDO POR DAÑO =====
+local lastHealth = humanoid.Health
+humanoid.HealthChanged:Connect(function(hp)
+	if hp < lastHealth then
+		-- Efecto "shot" de blur al recibir daño
+		task.spawn(function()
+			local peak = 10  -- intensidad del golpe visual
+			blur.Size = peak
+			for i = peak, 0, -1 do
+				blur.Size = i
+				task.wait(0.02)
+			end
+		end)
+	end
+	lastHealth = hp
+end)
+
+-- ===== BLUR POR BAJA VIDA =====
+humanoid.HealthChanged:Connect(function(hp)
+	local percent = hp / humanoid.MaxHealth
+	if percent < 0.15 then
+		local extra = math.clamp((0.15 - percent) * 100, 0, 15)
+		blur.Size = math.max(blur.Size, extra)
+	end
+end)
+
+print("🌇 Iluminación realista + blur dinámico aplicado correctamente.")
