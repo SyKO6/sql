@@ -129,25 +129,33 @@ local function tweenBlur(target, speed)
 	end)
 end
 
--- ===== BLUR POR MOVIMIENTO DE CÁMARA =====
-local lastCFrame = camera.CFrame
+-- ===== BLUR POR MOVIMIENTO DE CÁMARA (SUAVE Y REALISTA) =====
+local lastLookVector = camera.CFrame.LookVector
+local blurDecaySpeed = 3  -- qué tan rápido se desvanece el blur
+local blurIncreaseSpeed = 10 -- qué tan rápido aparece
+
 RunService.RenderStepped:Connect(function(dt)
-	local delta = (camera.CFrame.Position - lastCFrame.Position).Magnitude
-	local rotationChange = (camera.CFrame.LookVector - lastCFrame.LookVector).Magnitude
-	lastCFrame = camera.CFrame
+	local currentLookVector = camera.CFrame.LookVector
+	local rotationChange = (currentLookVector - lastLookVector).Magnitude
+	lastLookVector = currentLookVector
 
-	-- Movimiento moderado = blur leve
-	local movementStrength = math.clamp(rotationChange * 100 + delta * 3, 0, 1)
-	local targetBlur = movementStrength * 8
+	-- Detectar solo giros bruscos (ej: más de 80° o movimientos fuertes)
+	local intensity = math.clamp(rotationChange * 250, 0, 1)
 
-	blurTarget = targetBlur
-	if math.abs(currentBlur - blurTarget) > 0.2 then
-		if blurTarget > currentBlur then
-			tweenBlur(blurTarget, 0.3)
-		else
-			tweenBlur(blurTarget, 0.6)
-		end
+	-- Si el giro es muy leve, ignorarlo completamente
+	if intensity < 0.25 then
+		intensity = 0
 	end
+
+	-- Si hay movimiento fuerte, aumentar blur suavemente
+	if intensity > currentBlur then
+		currentBlur = currentBlur + (intensity - currentBlur) * dt * blurIncreaseSpeed
+	else
+		-- De lo contrario, desvanecer blur suavemente
+		currentBlur = currentBlur - currentBlur * dt * blurDecaySpeed
+	end
+
+	blur.Size = math.clamp(currentBlur * 15, 0, 15)
 end)
 
 -- ===== BLUR RÁPIDO POR DAÑO =====
