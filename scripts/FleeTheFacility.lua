@@ -28,7 +28,7 @@ local function makeFloatingButton(name, initialPos, size)
 	btn.AnchorPoint = Vector2.new(0.5, 0.5)
 	btn.BackgroundTransparency = 1
 	btn.AutoButtonColor = false
-	btn.Image = "" -- user will set
+	btn.Image = "rbxassetid://112619174208625" -- user will set
 	btn.ZIndex = 5
 	btn.Parent = screenGui
 
@@ -43,7 +43,7 @@ local function makeFloatingButton(name, initialPos, size)
 	shadow.Position = UDim2.new(0.5, 0.5, 0.5, 0)
 	shadow.Size = UDim2.new(1, 12, 1, 12)
 	shadow.BackgroundTransparency = 1
-	shadow.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
+	shadow.Image = "rbxassetid://112619174208625"
 	shadow.ImageTransparency = 0.9
 	shadow.ZIndex = 1
 
@@ -179,7 +179,7 @@ local previewText = Instance.new("TextLabel", previewFrame)
 previewText.Size = UDim2.new(1, -80, 1, 0)
 previewText.Position = UDim2.new(0, 80, 0, 0)
 previewText.BackgroundTransparency = 1
-previewText.Text = "Imagen actual (pega URL/AssetID abajo)"
+previewText.Text = "rbxassetid://112619174208625"
 previewText.TextColor3 = Color3.fromRGB(200,200,200)
 previewText.TextSize = 14
 previewText.Font = Enum.Font.Gotham
@@ -189,7 +189,7 @@ local imageLabel = Instance.new("TextLabel", menuFrame)
 imageLabel.Size = UDim2.new(1, -20, 0, 18)
 imageLabel.Position = UDim2.new(0, 10, 0, rowY)
 imageLabel.BackgroundTransparency = 1
-imageLabel.Text = "Image (asset id o rbxassetid://...):"
+imageLabel.Text = "rbxassetid://112619174208625"
 imageLabel.TextColor3 = Color3.fromRGB(200,200,200)
 imageLabel.TextSize = 14
 imageLabel.Font = Enum.Font.Gotham
@@ -198,7 +198,7 @@ rowY = rowY + 18
 local imageInput = Instance.new("TextBox", menuFrame)
 imageInput.Size = UDim2.new(1, -20, 0, 28)
 imageInput.Position = UDim2.new(0, 10, 0, rowY)
-imageInput.PlaceholderText = "ej: rbxassetid://12345678"
+imageInput.PlaceholderText = "rbxassetid://112619174208625"
 imageInput.ClearTextOnFocus = false
 imageInput.BackgroundColor3 = Color3.fromRGB(45,45,45)
 imageInput.TextColor3 = Color3.fromRGB(220,220,220)
