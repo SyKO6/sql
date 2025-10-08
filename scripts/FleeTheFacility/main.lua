@@ -1,5 +1,3 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/intro.lua"))()
-
 --// CONFIGURACIONES INICIALES
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
@@ -83,26 +81,6 @@ local function darkenColor(color, percent)
 	)
 end
 
---// Creador del tracker 3D (Beam)
-local function createTracker(fromPart, toPart, color)
-	local att0 = Instance.new("Attachment", fromPart)
-	local att1 = Instance.new("Attachment", toPart)
-
-	local beam = Instance.new("Beam")
-	beam.Attachment0 = att0
-	beam.Attachment1 = att1
-	beam.FaceCamera = false
-	beam.Color = ColorSequence.new(color)
-	beam.Transparency = NumberSequence.new(0.6)
-	beam.Width0 = 0.08
-	beam.Width1 = 0.08
-	beam.LightEmission = 0.6
-	beam.LightInfluence = 0
-	beam.Parent = fromPart
-
-	return beam
-end
-
 --// ESP avanzado
 local function createESP(target)
 	if target == player then return end
@@ -130,14 +108,8 @@ local function createESP(target)
 	nameLabel.TextScaled = true
 	nameLabel.Parent = billboard
 
-	local beam
-
 	RunService.RenderStepped:Connect(function()
-		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart") and player.Character and player.Character:FindFirstChild("HumanoidRootPart")) then
-			if beam then beam.Enabled = false end
-			return
-		end
-
+		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then return end
 		local dist = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
 
 		local tempStats = target:FindFirstChild("TempPlayerStatsModule")
@@ -151,11 +123,23 @@ local function createESP(target)
 		local crawlingValue = (crawling and crawling.Value)
 		local currentAnimValue = (currentAnim and currentAnim.Value) or ""
 
-		local color = Color3.fromRGB(255, 255, 255) -- Human base
-		if beastValue then color = Color3.fromRGB(255, 0, 0) end
-		if capturedValue then color = Color3.fromRGB(150, 220, 255) end
-		if currentAnimValue == "Typing" then color = Color3.fromRGB(0, 255, 0) end
+		-- Color base
+		local color = Color3.fromRGB(255, 255, 255) -- Human
+		if beastValue then
+			color = Color3.fromRGB(255, 0, 0) -- Beast
+		end
 
+		-- Si el jugador está capturado
+		if capturedValue then
+			color = Color3.fromRGB(150, 220, 255) -- Azul hielo
+		end
+
+		-- Si la animación actual es "Typing"
+		if currentAnimValue == "Typing" then
+			color = Color3.fromRGB(0, 255, 0) -- Verde lima
+		end
+
+		-- Si está dentro del rango de peligro de la bestia (<30 studs)
 		local beast = nil
 		for _, plr in pairs(Players:GetPlayers()) do
 			local ts = plr:FindFirstChild("TempPlayerStatsModule")
@@ -164,16 +148,16 @@ local function createESP(target)
 				break
 			end
 		end
-
 		if beast and beast.Character and beast.Character:FindFirstChild("HumanoidRootPart") then
 			local beastDist = (beast.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
 			if beastDist < 30 and not beastValue then
-				color = Color3.fromRGB(255, 180, 50)
+				color = Color3.fromRGB(255, 180, 50) -- Naranja-amarillo
 			end
 		end
 
+		-- Si está agachado (IsCrawling), baja 30% el brillo del color actual
 		if crawlingValue then
-			local r, g, b = color.R * 255, color.G * 255, color.B * 255
+			local r,g,b = color.R * 255, color.G * 255, color.B * 255
 			color = Color3.fromRGB(r * 0.7, g * 0.7, b * 0.7)
 		end
 
@@ -187,16 +171,10 @@ local function createESP(target)
 				and target.SavedPlayerStatsModule.BeastChance.Value) or 0, 
 			dist
 		)
-
-		if not beam then
-			beam = createTracker(player.Character.HumanoidRootPart, target.Character.HumanoidRootPart, color)
-		else
-			beam.Color = ColorSequence.new(color)
-			beam.Enabled = true
-		end
 	end)
 end
 
+--// Aplicar ESP a todos los jugadores
 for _, plr in pairs(Players:GetPlayers()) do
 	if plr ~= player then
 		plr.CharacterAdded:Connect(function()
