@@ -130,32 +130,29 @@ local function tweenBlur(target, speed)
 	end)
 end
 
--- ===== BLUR POR MOVIMIENTO DE CÁMARA (SOLO GIROS BRUSCOS) =====
+-- ===== BLUR POR MOVIMIENTO DE CÁMARA (SOLO GIROS EXTREMADAMENTE BRUSCOS) =====
 local lastLookVector = camera.CFrame.LookVector
-local blurDecaySpeed = 3.5   -- velocidad a la que se desvanece el blur
-local blurIncreaseSpeed = 12 -- velocidad a la que aparece
-local blurThreshold = 0.045  -- sensibilidad: mientras más alto, más brusco debe ser el giro
+local blurDecaySpeed = 3.5   -- qué tan rápido se desvanece el blur
+local blurIncreaseSpeed = 12 -- qué tan rápido aparece
+local blurThreshold = 0.18   -- 🔥 sensibilidad MUY alta (debe ser un giro rapidísimo para activar)
 
 RunService.RenderStepped:Connect(function(dt)
 	local currentLookVector = camera.CFrame.LookVector
 	local rotationChange = (currentLookVector - lastLookVector).Magnitude
 	lastLookVector = currentLookVector
 
-	-- Detecta si el movimiento supera el umbral de giro brusco
 	local intensity = 0
 	if rotationChange > blurThreshold then
-		intensity = math.clamp((rotationChange - blurThreshold) * 800, 0, 1)
+		-- se activa solo si el movimiento supera muchísimo el umbral
+		intensity = math.clamp((rotationChange - blurThreshold) * 1200, 0, 1)
 	end
 
-	-- Si hay movimiento fuerte, aumentar blur suavemente
 	if intensity > currentBlur then
 		currentBlur += (intensity - currentBlur) * dt * blurIncreaseSpeed
 	else
-		-- De lo contrario, desvanecer blur suavemente
 		currentBlur -= currentBlur * dt * blurDecaySpeed
 	end
 
-	-- Aplicar blur con transición suave
 	blur.Size = math.clamp(currentBlur * 20, 0, 15)
 end)
 
