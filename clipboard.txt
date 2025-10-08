@@ -1,5 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/FleeTheFacility/main.lua"))()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/FleeTheFacility/intro.lua"))()       
+loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/intro.lua"))()                                             
 loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/Syk0Shaders/1/mainShader.lua"))()
 loadstring(game:HttpGet(""))()
 loadstring(game:HttpGet(""))()
