@@ -72,6 +72,15 @@ if player.Character then
 end
 player.CharacterAdded:Connect(enforceWalkSpeed)
 
+--// Función para oscurecer color un % dado
+local function darkenColor(color, percent)
+	return Color3.new(
+		color.R * (1 - percent),
+		color.G * (1 - percent),
+		color.B * (1 - percent)
+	)
+end
+
 --// ESP avanzado
 local function createESP(target)
 	if target == player then return end
@@ -147,12 +156,15 @@ local function createESP(target)
 		elseif capturedValue then
 			textColor = Color3.fromRGB(80, 200, 255)
 			outlineColor = Color3.fromRGB(80, 200, 255)
-		elseif crawlValue then
-			textColor = Color3.fromRGB(56, 140, 179)
-			outlineColor = Color3.fromRGB(56, 140, 179)
 		elseif nearestBeastDist < 20 then
 			textColor = Color3.fromRGB(255, 170, 0)
 			outlineColor = Color3.fromRGB(255, 140, 0)
+		end
+
+		-- Si está agachado → mismo color, pero 30 % más oscuro
+		if crawlValue then
+			textColor = darkenColor(textColor, 0.3)
+			outlineColor = darkenColor(outlineColor, 0.3)
 		end
 
 		nameLabel.TextColor3 = textColor
@@ -164,7 +176,6 @@ local function createESP(target)
 	end)
 end
 
---// Aplicar ESP a todos los jugadores
 for _, plr in pairs(Players:GetPlayers()) do
 	if plr ~= player then
 		plr.CharacterAdded:Connect(function()
