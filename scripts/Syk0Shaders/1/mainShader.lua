@@ -18,11 +18,11 @@ end
 -- ===== AJUSTES BASE =====
 pcall(function()
 	Lighting.ClockTime = 13.2
-	Lighting.Brightness = 3.5
+	Lighting.Brightness = 5
 	Lighting.Ambient = Color3.fromRGB(0, 0, 0)
 	Lighting.OutdoorAmbient = Color3.fromRGB(0, 0, 0)
 	Lighting.FogStart = 0
-	Lighting.FogEnd = 1500
+	Lighting.FogEnd = 2800
 	Lighting.FogColor = Color3.fromRGB(0, 0, 0)
 	Lighting.GlobalShadows = true
 	Lighting.EnvironmentDiffuseScale = 1.0
@@ -33,21 +33,21 @@ end)
 -- ===== ATMOSPHERE =====
 local atmosphere = Instance.new("Atmosphere")
 atmosphere.Name = "RealisticAtmosphere"
-atmosphere.Density = 0.45
+atmosphere.Density = 0.48
 atmosphere.Offset = 0.0
 atmosphere.Color = Color3.fromRGB(255, 255, 255)
 atmosphere.Decay = Color3.fromRGB(255, 255, 255)
-atmosphere.Glare = 4.0
-atmosphere.Haze = 10.0
+atmosphere.Glare = 0.45
+atmosphere.Haze = 2.6
 atmosphere.Parent = Lighting
 
 -- ===== COLOR CORRECTION =====
 local cc = Instance.new("ColorCorrectionEffect")
 cc.Name = "RealisticColorCorrection"
-cc.Brightness = -0.1
-cc.Contrast = 0.3
-cc.Saturation = 0.35
-cc.TintColor = Color3.fromRGB(230, 210, 255)
+cc.Brightness = -0.08
+cc.Contrast = 0.35
+cc.Saturation = 0.4
+cc.TintColor = Color3.fromRGB(242, 255, 255)
 cc.Parent = Lighting
 
 -- ===== BLOOM =====
