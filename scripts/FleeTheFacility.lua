@@ -27,7 +27,7 @@ Lighting.ExposureCompensation = 0.5
 task.spawn(function()
 	while true do
 		task.wait(1)
-		if Lighting.GlobalShadows == true then
+		if Lighting.GlobalShadows then
 			Lighting.GlobalShadows = false
 		end
 		if Lighting.Atmosphere and Lighting.Atmosphere.Density ~= 0 then
@@ -68,21 +68,20 @@ if player.Character then
 end
 player.CharacterAdded:Connect(enforceWalkSpeed)
 
---// ESP simple (ver jugadores a través de paredes con nombre y distancia)
+--// ESP (ver jugadores con nombre, distancia y rol)
 local function createESP(target)
 	if target == player then return end
+
 	local highlight = Instance.new("Highlight")
 	highlight.Name = "ESPHighlight"
-	highlight.Adornee = target.Character
 	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 	highlight.FillTransparency = 1
-	highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
 	highlight.OutlineTransparency = 0
 	highlight.Parent = target.Character
 
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "NameTag"
-	billboard.Size = UDim2.new(0, 200, 0, 30)
+	billboard.Size = UDim2.new(0, 220, 0, 18)
 	billboard.AlwaysOnTop = true
 	billboard.Adornee = target.Character:WaitForChild("Head")
 	billboard.Parent = target.Character
@@ -97,13 +96,26 @@ local function createESP(target)
 	nameLabel.Parent = billboard
 
 	RunService.RenderStepped:Connect(function()
-		if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-			local dist = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
-			nameLabel.Text = string.format("%s [%.1f]", target.Name, dist)
+		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then return end
+		local dist = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
+
+		local tempStats = target:FindFirstChild("TempPlayerStatsModule")
+		local isBeast = tempStats and tempStats:FindFirstChild("IsBeast")
+		local isBeastValue = (isBeast and isBeast.Value) or false
+
+		-- Actualizar color del contorno según rol
+		if isBeastValue then
+			highlight.OutlineColor = Color3.fromRGB(255, 0, 0) -- rojo
+		else
+			highlight.OutlineColor = Color3.fromRGB(255, 255, 255) -- blanco
 		end
+
+		-- Mostrar texto con rol
+		nameLabel.Text = string.format("%s - %.1f - %s", target.Name, dist, isBeastValue and "Beast" or "Human")
 	end)
 end
 
+--// Crear ESP para todos los jugadores
 for _, plr in pairs(Players:GetPlayers()) do
 	if plr ~= player then
 		plr.CharacterAdded:Connect(function()
