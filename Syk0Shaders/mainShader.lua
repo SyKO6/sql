@@ -16,7 +16,7 @@ end
 -- ===== AJUSTES BASE =====
 pcall(function()
 	Lighting.ClockTime = 14
-	Lighting.Brightness = 4
+	Lighting.Brightness = 4.5
 	Lighting.Ambient = Color3.fromRGB(0, 0, 0)
 	Lighting.OutdoorAmbient = Color3.fromRGB(0, 0, 0)
 	Lighting.FogStart = 0
@@ -42,9 +42,9 @@ atmosphere.Parent = Lighting
 -- ===== COLOR CORRECTION =====
 local cc = Instance.new("ColorCorrectionEffect")
 cc.Name = "RealisticColorCorrection"
-cc.Brightness = 0.2
-cc.Contrast = 0.12
-cc.Saturation = 0.2
+cc.Brightness = 0.15
+cc.Contrast = 0.2
+cc.Saturation = 0.25
 cc.TintColor = Color3.fromRGB(230, 230, 255)
 cc.Parent = Lighting
 
@@ -130,33 +130,33 @@ local function tweenBlur(target, speed)
 	end)
 end
 
--- ===== BLUR POR MOVIMIENTO DE CÁMARA (SUAVE Y REALISTA) =====
+-- ===== BLUR POR MOVIMIENTO DE CÁMARA (SOLO GIROS BRUSCOS) =====
 local lastLookVector = camera.CFrame.LookVector
-local blurDecaySpeed = 3  -- qué tan rápido se desvanece el blur
-local blurIncreaseSpeed = 10 -- qué tan rápido aparece
+local blurDecaySpeed = 3.5   -- velocidad a la que se desvanece el blur
+local blurIncreaseSpeed = 12 -- velocidad a la que aparece
+local blurThreshold = 0.045  -- sensibilidad: mientras más alto, más brusco debe ser el giro
 
 RunService.RenderStepped:Connect(function(dt)
 	local currentLookVector = camera.CFrame.LookVector
 	local rotationChange = (currentLookVector - lastLookVector).Magnitude
 	lastLookVector = currentLookVector
 
-	-- Detectar solo giros bruscos (ej: más de 80° o movimientos fuertes)
-	local intensity = math.clamp(rotationChange * 250, 0, 1)
-
-	-- Si el giro es muy leve, ignorarlo completamente
-	if intensity < 0.25 then
-		intensity = 0
+	-- Detecta si el movimiento supera el umbral de giro brusco
+	local intensity = 0
+	if rotationChange > blurThreshold then
+		intensity = math.clamp((rotationChange - blurThreshold) * 800, 0, 1)
 	end
 
 	-- Si hay movimiento fuerte, aumentar blur suavemente
 	if intensity > currentBlur then
-		currentBlur = currentBlur + (intensity - currentBlur) * dt * blurIncreaseSpeed
+		currentBlur += (intensity - currentBlur) * dt * blurIncreaseSpeed
 	else
 		-- De lo contrario, desvanecer blur suavemente
-		currentBlur = currentBlur - currentBlur * dt * blurDecaySpeed
+		currentBlur -= currentBlur * dt * blurDecaySpeed
 	end
 
-	blur.Size = math.clamp(currentBlur * 15, 0, 15)
+	-- Aplicar blur con transición suave
+	blur.Size = math.clamp(currentBlur * 20, 0, 15)
 end)
 
 -- ===== BLUR RÁPIDO POR DAÑO =====
