@@ -1,4 +1,4 @@
--- ===== INTRO SCRIPT COMPLETO CON FADE-OUT FINAL =====
+-- ===== INTRO SCRIPT COMPLETO AJUSTADO =====
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
@@ -10,17 +10,18 @@ local playerGui = player:WaitForChild("PlayerGui")
 local introGui = Instance.new("ScreenGui", playerGui)
 introGui.Name = "IntroGUI"
 
--- Fondo semi-opaco con blur
+-- Blur
 local blur = Instance.new("BlurEffect", Lighting)
 blur.Size = 0
 
-local overlay = Instance.new("Frame", introGui)
-overlay.Size = UDim2.new(1, 0, 1, 0)
-overlay.BackgroundColor3 = Color3.new(0, 0, 0)
-overlay.BackgroundTransparency = 0.2
+-- ColorCorrection para "opacidad"
+local colorCorrection = Instance.new("ColorCorrectionEffect", Lighting)
+colorCorrection.Brightness = -0.5 -- Baja brillo 50%
+colorCorrection.Contrast = 0
+colorCorrection.Saturation = 0
 
 -- Imagen redonda con sombra
-local image = Instance.new("ImageLabel", overlay)
+local image = Instance.new("ImageLabel", introGui)
 image.Size = UDim2.new(0, 200, 0, 200)
 image.Position = UDim2.new(0.5, -100, 0.5, -100)
 image.BackgroundTransparency = 1
@@ -35,11 +36,11 @@ local shadow = Instance.new("ImageLabel", image)
 shadow.Size = UDim2.new(1.2, 0, 1.2, 0)
 shadow.Position = UDim2.new(-0.1, 0, -0.1, 0)
 shadow.BackgroundTransparency = 1
-shadow.Image = "rbxassetid://131604521"
+shadow.Image = "rbxassetid://124099167963073"
 shadow.ZIndex = -1
 
 -- Texto "Syk0 Script"
-local label = Instance.new("TextLabel", overlay)
+local label = Instance.new("TextLabel", introGui)
 label.Size = UDim2.new(1, 0, 0, 50)
 label.Position = UDim2.new(0, 0, 0.7, 0)
 label.Text = "Syk0 Script"
@@ -49,7 +50,7 @@ label.TextColor3 = Color3.new(1, 1, 1)
 label.TextStrokeTransparency = 0.5
 label.BackgroundTransparency = 1
 
--- Animación de cambio de color
+-- Animación cambio de color
 spawn(function()
 	while true do
 		for i = 0, 1, 0.01 do
@@ -68,32 +69,34 @@ local tweenInfo = TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection
 local tween = TweenService:Create(image, tweenInfo, {Position = UDim2.new(0.5, -100, 0.4, -100)})
 tween:Play()
 
--- Subir blur
+-- Subir blur y brillo
 TweenService:Create(blur, TweenInfo.new(2), {Size = 80}):Play()
+TweenService:Create(colorCorrection, TweenInfo.new(2), {Brightness = 0}):Play()
 wait(2.5)
 
--- Fade-out overlay inicial
-local fadeTween = TweenService:Create(overlay, TweenInfo.new(1.5), {BackgroundTransparency = 1})
-fadeTween:Play()
+-- Desaparece imagen y texto inicial
+TweenService:Create(image, TweenInfo.new(1.5), {ImageTransparency = 1}):Play()
+TweenService:Create(label, TweenInfo.new(1.5), {TextTransparency = 1}):Play()
 wait(1.5)
-overlay:Destroy()
 
--- Mostrar título final con efecto typing
+-- Texto final
 local finalGui = Instance.new("ScreenGui", playerGui)
 finalGui.Name = "FinalIntro"
 
 local title = Instance.new("TextLabel", finalGui)
 title.Size = UDim2.new(1, 0, 0.2, 0)
-title.Position = UDim2.new(0, 0, 0.3, 0)
+title.Position = UDim2.new(0, 0, 0.35, 0) -- centrado verticalmente
 title.Text = "— Syk0 —"
 title.Font = Enum.Font.SourceSansBold
 title.TextSize = 48
 title.TextColor3 = Color3.new(1, 1, 1)
 title.BackgroundTransparency = 1
+title.TextStrokeTransparency = 0.5
+title.TextScaled = true
 
 local desc = Instance.new("TextLabel", finalGui)
-desc.Size = UDim2.new(1, 0, 0.3, 0)
-desc.Position = UDim2.new(0, 0, 0.5, 0)
+desc.Size = UDim2.new(0.8, 0, 0.3, 0)
+desc.Position = UDim2.new(0.1, 0, 0.55, 0)
 desc.Text = ""
 desc.Font = Enum.Font.SourceSans
 desc.TextSize = 24
@@ -112,19 +115,16 @@ spawn(function()
 end)
 
 -- Esperar lectura
-wait(3) -- Tiempo que el texto final permanece visible
+wait(3)
 
 -- ===== FADE-OUT FINAL =====
-local fadeFinal = TweenService:Create(finalGui, TweenInfo.new(1.5), {BackgroundTransparency = 1})
+local fadeFinal = TweenService:Create(title, TweenInfo.new(1.5), {TextTransparency = 1})
 fadeFinal:Play()
-
--- Desvanecer título y descripción
-for _, obj in pairs(finalGui:GetChildren()) do
-	if obj:IsA("TextLabel") then
-		TweenService:Create(obj, TweenInfo.new(1.5), {TextTransparency = 1}):Play()
-	end
-end
+TweenService:Create(desc, TweenInfo.new(1.5), {TextTransparency = 1}):Play()
+TweenService:Create(blur, TweenInfo.new(1.5), {Size = 0}):Play()
+TweenService:Create(colorCorrection, TweenInfo.new(1.5), {Brightness = -0.5}):Play()
 
 wait(1.5)
 finalGui:Destroy()
 blur:Destroy()
+colorCorrection:Destroy()
