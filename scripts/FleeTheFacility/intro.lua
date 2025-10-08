@@ -32,13 +32,6 @@ image.ClipsDescendants = true
 local uicorner = Instance.new("UICorner", image)
 uicorner.CornerRadius = UDim.new(1, 0)
 
-local shadow = Instance.new("ImageLabel", image)
-shadow.Size = UDim2.new(1.2, 0, 1.2, 0)
-shadow.Position = UDim2.new(-0.1, 0, -0.1, 0)
-shadow.BackgroundTransparency = 1
-shadow.Image = "rbxassetid://124099167963073"
-shadow.ZIndex = -1
-
 -- Texto "Syk0 Script"
 local label = Instance.new("TextLabel", introGui)
 label.Size = UDim2.new(1, 0, 0, 50)
