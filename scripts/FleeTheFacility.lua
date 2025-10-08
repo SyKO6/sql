@@ -24,7 +24,6 @@ Lighting.Brightness = 3
 Lighting.FogEnd = 100000
 Lighting.ExposureCompensation = 0.5
 
---// Bucle de corrección continua de Lighting
 task.spawn(function()
 	while true do
 		task.wait(1)
@@ -68,13 +67,12 @@ local function enforceWalkSpeed()
 	end)
 end
 
---// Aplicar la lógica al personaje actual y futuros
 if player.Character then
 	enforceWalkSpeed()
 end
 player.CharacterAdded:Connect(enforceWalkSpeed)
 
---// ESP (nombre, tipo, chance y distancia)
+--// ESP avanzado
 local function createESP(target)
 	if target == player then return end
 
@@ -89,7 +87,7 @@ local function createESP(target)
 	billboard.Name = "NameTag"
 	billboard.Size = UDim2.new(0, 260, 0, 20)
 	billboard.AlwaysOnTop = true
-	billboard.ExtentsOffset = Vector3.new(0, 3, 0) -- 👈 Mueve el texto encima de la cabeza
+	billboard.ExtentsOffset = Vector3.new(0, 3, 0)
 	billboard.Adornee = target.Character:WaitForChild("Head")
 	billboard.Parent = target.Character
 
@@ -103,7 +101,9 @@ local function createESP(target)
 	nameLabel.Parent = billboard
 
 	RunService.RenderStepped:Connect(function()
-		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then return end
+		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart") and player.Character and player.Character:FindFirstChild("HumanoidRootPart")) then 
+			return 
+		end
 
 		local dist = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
 
@@ -111,17 +111,52 @@ local function createESP(target)
 		local savedStats = target:FindFirstChild("SavedPlayerStatsModule")
 
 		local isBeast = tempStats and tempStats:FindFirstChild("IsBeast")
+		local isCrawling = tempStats and tempStats:FindFirstChild("IsCrawling")
+		local isCaptured = tempStats and tempStats:FindFirstChild("Captured")
+
 		local beastValue = (isBeast and isBeast.Value) or false
+		local crawlValue = (isCrawling and isCrawling.Value) or false
+		local capturedValue = (isCaptured and isCaptured.Value) or false
 
 		local beastChance = savedStats and savedStats:FindFirstChild("BeastChance")
 		local chanceValue = (beastChance and beastChance.Value) or 0
 
-		-- Cambiar color según tipo
-		if beastValue then
-			highlight.OutlineColor = Color3.fromRGB(255, 0, 0) -- rojo
-		else
-			highlight.OutlineColor = Color3.fromRGB(255, 255, 255) -- blanco
+		-- Buscar si hay bestia para medir distancia
+		local nearestBeastDist = math.huge
+		for _, plr in pairs(Players:GetPlayers()) do
+			if plr ~= target then
+				local stats = plr:FindFirstChild("TempPlayerStatsModule")
+				local isB = stats and stats:FindFirstChild("IsBeast")
+				if isB and isB.Value and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+					local d = (target.Character.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude
+					if d < nearestBeastDist then
+						nearestBeastDist = d
+					end
+				end
+			end
 		end
+
+		-- Colores base
+		local textColor = Color3.fromRGB(255, 255, 255)
+		local outlineColor = Color3.fromRGB(255, 255, 255)
+
+		-- Prioridad de color
+		if beastValue then
+			textColor = Color3.fromRGB(255, 0, 0)
+			outlineColor = Color3.fromRGB(255, 0, 0)
+		elseif capturedValue then
+			textColor = Color3.fromRGB(80, 200, 255)
+			outlineColor = Color3.fromRGB(80, 200, 255)
+		elseif crawlValue then
+			textColor = Color3.fromRGB(56, 140, 179)
+			outlineColor = Color3.fromRGB(56, 140, 179)
+		elseif nearestBeastDist < 20 then
+			textColor = Color3.fromRGB(255, 170, 0)
+			outlineColor = Color3.fromRGB(255, 140, 0)
+		end
+
+		nameLabel.TextColor3 = textColor
+		highlight.OutlineColor = outlineColor
 
 		-- Mostrar formato: Nombre [Beast / Human (Chance%)] - Studs
 		local role = beastValue and "Beast" or "Human"
@@ -129,7 +164,7 @@ local function createESP(target)
 	end)
 end
 
---// Aplicar ESP a todos los jugadores existentes y nuevos
+--// Aplicar ESP a todos los jugadores
 for _, plr in pairs(Players:GetPlayers()) do
 	if plr ~= player then
 		plr.CharacterAdded:Connect(function()
