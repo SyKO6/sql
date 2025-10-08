@@ -53,9 +53,9 @@ cc.Parent = Lighting
 -- ===== BLOOM =====
 local bloom = Instance.new("BloomEffect")
 bloom.Name = "RealisticBloom"
-bloom.Intensity = 10.0
-bloom.Size = 50
-bloom.Threshold = 10.0
+bloom.Intensity = 0.5
+bloom.Size = 2000
+bloom.Threshold = 1.0
 bloom.Parent = Lighting
 
 -- ===== SUNRAYS =====
