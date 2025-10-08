@@ -6,7 +6,7 @@ local Lighting = game:GetService("Lighting")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Crear ScreenGui
+-- Crear ScreenGui para intro inicial
 local introGui = Instance.new("ScreenGui", playerGui)
 introGui.Name = "IntroGUI"
 
@@ -72,12 +72,15 @@ TweenService:Create(image, TweenInfo.new(1.5), {ImageTransparency = 1}):Play()
 TweenService:Create(label, TweenInfo.new(1.5), {TextTransparency = 1}):Play()
 wait(1.5)
 
--- Texto final
+-- Destruir intro inicial para evitar doble imagen
+introGui:Destroy()
+
+-- Texto final (centro pantalla)
 local finalGui = Instance.new("ScreenGui", playerGui)
 finalGui.Name = "FinalIntro"
 
 local title = Instance.new("TextLabel", finalGui)
-title.Size = UDim2.new(1, 0, 0.2, 0)
+title.Size = UDim2.new(1, 0, 0.3, 0)
 title.Position = UDim2.new(0, 0, 0.35, 0) -- centrado verticalmente
 title.Text = "— Syk0 —"
 title.Font = Enum.Font.SourceSansBold
@@ -86,17 +89,21 @@ title.TextColor3 = Color3.new(1, 1, 1)
 title.BackgroundTransparency = 1
 title.TextStrokeTransparency = 0.5
 title.TextScaled = true
+title.TextWrapped = true
+title.TextYAlignment = Enum.TextYAlignment.Center
+title.TextXAlignment = Enum.TextXAlignment.Center
 
 local desc = Instance.new("TextLabel", finalGui)
 desc.Size = UDim2.new(0.8, 0, 0.3, 0)
-desc.Position = UDim2.new(0.1, 0, 0.55, 0)
+desc.Position = UDim2.new(0.1, 0, 0.65, 0)
 desc.Text = ""
 desc.Font = Enum.Font.SourceSans
 desc.TextSize = 24
 desc.TextColor3 = Color3.new(1, 1, 1)
 desc.BackgroundTransparency = 1
 desc.TextWrapped = true
-desc.TextYAlignment = Enum.TextYAlignment.Top
+desc.TextYAlignment = Enum.TextYAlignment.Center
+desc.TextXAlignment = Enum.TextXAlignment.Center
 
 local descriptionText = "Script creada por mí, modificación permitida."
 
@@ -111,11 +118,10 @@ end)
 wait(3)
 
 -- ===== FADE-OUT FINAL =====
-local fadeFinal = TweenService:Create(title, TweenInfo.new(1.5), {TextTransparency = 1})
-fadeFinal:Play()
+TweenService:Create(title, TweenInfo.new(1.5), {TextTransparency = 1}):Play()
 TweenService:Create(desc, TweenInfo.new(1.5), {TextTransparency = 1}):Play()
 TweenService:Create(blur, TweenInfo.new(1.5), {Size = 0}):Play()
-TweenService:Create(colorCorrection, TweenInfo.new(1.5), {Brightness = -0.5}):Play()
+TweenService:Create(colorCorrection, TweenInfo.new(1.5), {Brightness = -0.8}):Play()
 
 wait(1.5)
 finalGui:Destroy()
