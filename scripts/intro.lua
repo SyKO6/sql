@@ -11,8 +11,8 @@ local introGui = Instance.new("ScreenGui", playerGui)
 introGui.Name = "IntroGUI"
 
 -- Blur
-local blur = Instance.new("BlurEffect", Lighting)
-blur.Size = 0
+local introBlur = Instance.new("BlurEffect", Lighting)
+introBlur.Size = 0
 
 -- ColorCorrection para "opacidad"
 local colorCorrection = Instance.new("ColorCorrectionEffect", Lighting)
@@ -62,8 +62,8 @@ local tweenInfo = TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection
 local tween = TweenService:Create(image, tweenInfo, {Position = UDim2.new(0.5, -100, 0.4, -100)})
 tween:Play()
 
--- Subir blur y brillo
-TweenService:Create(blur, TweenInfo.new(2), {Size = 80}):Play()
+-- Subir introBlur y brillo
+TweenService:Create(introBlur, TweenInfo.new(2), {Size = 80}):Play()
 TweenService:Create(colorCorrection, TweenInfo.new(2), {Brightness = 0}):Play()
 wait(2.5)
 
@@ -120,10 +120,10 @@ wait(3)
 -- ===== FADE-OUT FINAL =====
 TweenService:Create(title, TweenInfo.new(1.5), {TextTransparency = 1}):Play()
 TweenService:Create(desc, TweenInfo.new(1.5), {TextTransparency = 1}):Play()
-TweenService:Create(blur, TweenInfo.new(1.5), {Size = 0}):Play()
+TweenService:Create(introBlur, TweenInfo.new(1.5), {Size = 0}):Play()
 TweenService:Create(colorCorrection, TweenInfo.new(1.5), {Brightness = -0.8}):Play()
 
 wait(1.5)
 finalGui:Destroy()
-blur:Destroy()
+introBlur:Destroy()
 colorCorrection:Destroy()
