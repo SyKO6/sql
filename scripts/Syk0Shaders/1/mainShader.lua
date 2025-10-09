@@ -1,6 +1,6 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/intro.lua"))()
 
--- 🌅 ILUMINACIÓN REALISTA + EFECTOS VISUALES + BLUR DINÁMICO + RTX + GOD RAYS + REFLEJOS EN ROPA
+-- 🌅 ILUMINACIÓN REALISTA + BLUR DINÁMICO + RTX + GOD RAYS + REFLEJO METAL-LIKE
 
 -- ===== SERVICIOS =====
 local Lighting = game:GetService("Lighting")
@@ -56,14 +56,14 @@ local cc = Instance.new("ColorCorrectionEffect")
 cc.Name = "RealisticColorCorrection"
 cc.Brightness = -0.15
 cc.Contrast = 0.5
-cc.Saturation = 0.45
+cc.Saturation = 0.4
 cc.TintColor = Color3.fromRGB(242, 255, 255)
 cc.Parent = Lighting
 
 -- ===== BLOOM =====
 local bloom = Instance.new("BloomEffect")
 bloom.Name = "RealisticBloom"
-bloom.Intensity = 0.22
+bloom.Intensity = 0.26
 bloom.Size = 3000
 bloom.Threshold = 1.0
 bloom.Parent = Lighting
@@ -193,49 +193,54 @@ task.spawn(function()
 	end
 end)
 
--- ===== REFLEJOS RTX REALISTAS =====
-local function applyRTXReflectance(part)
+-- ===== REFLEJO METAL-LIKE AUTOMÁTICO =====
+local function applyMetalLikeReflect(part)
 	if part:IsA("BasePart") then
-		if part.Reflectance < 0.2 then
-			part.Reflectance = 0.3
-		end
 		part.CastShadow = true
+
+		local sa = part:FindFirstChild("RTXReflect")
+		if not sa then
+			sa = Instance.new("SurfaceAppearance")
+			sa.Name = "RTXReflect"
+			sa.Parent = part
+		end
+
+		sa.Specular = Color3.fromRGB(255,255,255)
+		sa.Roughness = 0.2
+		sa.Metalness = 0.1
 	end
 end
 
-for _, obj in pairs(workspace:GetDescendants()) do
-	applyRTXReflectance(obj)
+for _, obj in ipairs(workspace:GetDescendants()) do
+	applyMetalLikeReflect(obj)
 end
 
 workspace.DescendantAdded:Connect(function(obj)
-	applyRTXReflectance(obj)
+	applyMetalLikeReflect(obj)
 end)
 
 -- ===== REFLEJOS EN ROPA Y COSMÉTICOS =====
 local function applyRTXReflectanceToAppearance(obj)
 	if obj:IsA("BasePart") then
-		if obj.Reflectance < 0.2 then
-			obj.Reflectance = 0.4
-		end
-		obj.CastShadow = true
+		applyMetalLikeReflect(obj)
 	end
 
 	if obj:IsA("Accessory") then
 		if obj:FindFirstChild("Handle") then
-			applyRTXReflectanceToAppearance(obj.Handle)
+			applyMetalLikeReflect(obj.Handle)
 		end
 	end
 	
 	if obj:IsA("Hat") or obj:IsA("Tool") then
 		for _, sub in ipairs(obj:GetDescendants()) do
 			if sub:IsA("BasePart") then
-				applyRTXReflectanceToAppearance(sub)
+				applyMetalLikeReflect(sub)
 			end
 			if sub:IsA("Decal") then
-				sub.Transparency = math.clamp(sub.Transparency - 0.22, 0, 1)
+				sub.Transparency = math.clamp(sub.Transparency - 0.1, 0, 1)
 			end
 			if sub:IsA("SurfaceAppearance") then
-				sub.Reflectance = math.clamp(sub.Reflectance + 0.22, 0, 1)
+				sub.Reflectance = math.clamp(sub.Reflectance + 0.2, 0, 1)
 			end
 		end
 	end
@@ -269,4 +274,4 @@ end)
 sunRays.Intensity = 1.8
 sunRays.Spread = 1.5
 
-print("🌇 RTX + God Rays + Iluminación realista + Reflejos en ropa aplicada correctamente.")
+print("🌇 RTX + God Rays + Iluminación realista + Reflejo metal-like aplicado correctamente.")
