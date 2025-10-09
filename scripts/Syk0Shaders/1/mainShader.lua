@@ -193,81 +193,45 @@ task.spawn(function()
 	end
 end)
 
--- ===== REFLEJO METAL-LIKE AUTOMÁTICO =====
+-- ===== REFLEJO METAL-LIKE DINÁMICO =====
 local function applyMetalLikeReflect(part)
 	if part:IsA("BasePart") then
 		part.CastShadow = true
-
 		local sa = part:FindFirstChild("RTXReflect")
 		if not sa then
 			sa = Instance.new("SurfaceAppearance")
 			sa.Name = "RTXReflect"
 			sa.Parent = part
 		end
-
-		sa.Specular = Color3.fromRGB(255,255,255)
+		sa.Specular = Color3.fromRGB(255, 255, 255)
 		sa.Roughness = 0.2
 		sa.Metalness = 0.1
 	end
 end
 
-for _, obj in ipairs(workspace:GetDescendants()) do
-	applyMetalLikeReflect(obj)
+local function updateReflectIntensity()
+	local camPos = camera.CFrame.Position
+	for _, part in ipairs(workspace:GetDescendants()) do
+		if part:IsA("BasePart") then
+			applyMetalLikeReflect(part)
+			local toCamera = (camPos - part.Position).Unit
+			local lightFactor = math.clamp(part.CFrame.LookVector:Dot(toCamera), 0, 1)
+			local sa = part:FindFirstChild("RTXReflect")
+			if sa then
+				sa.Roughness = math.clamp(0.1 + (1 - lightFactor) * 0.5, 0, 1)
+				sa.Metalness = math.clamp(lightFactor * 0.5, 0, 1)
+			end
+		end
+	end
 end
 
-workspace.DescendantAdded:Connect(function(obj)
-	applyMetalLikeReflect(obj)
-end)
+updateReflectIntensity()
+RunService.RenderStepped:Connect(updateReflectIntensity)
 
--- ===== REFLEJOS EN ROPA Y COSMÉTICOS =====
-local function applyRTXReflectanceToAppearance(obj)
+workspace.DescendantAdded:Connect(function(obj)
 	if obj:IsA("BasePart") then
 		applyMetalLikeReflect(obj)
 	end
-
-	if obj:IsA("Accessory") then
-		if obj:FindFirstChild("Handle") then
-			applyMetalLikeReflect(obj.Handle)
-		end
-	end
-	
-	if obj:IsA("Hat") or obj:IsA("Tool") then
-		for _, sub in ipairs(obj:GetDescendants()) do
-			if sub:IsA("BasePart") then
-				applyMetalLikeReflect(sub)
-			end
-			if sub:IsA("Decal") then
-				sub.Transparency = math.clamp(sub.Transparency - 0.1, 0, 1)
-			end
-			if sub:IsA("SurfaceAppearance") then
-				sub.Reflectance = math.clamp(sub.Reflectance + 0.2, 0, 1)
-			end
-		end
-	end
-end
-
-for _, obj in ipairs(workspace:GetDescendants()) do
-	applyRTXReflectanceToAppearance(obj)
-end
-
-workspace.DescendantAdded:Connect(function(obj)
-	applyRTXReflectanceToAppearance(obj)
-end)
-
-for _, plr in pairs(Players:GetPlayers()) do
-	if plr.Character then
-		for _, obj in ipairs(plr.Character:GetDescendants()) do
-			applyRTXReflectanceToAppearance(obj)
-		end
-	end
-end
-
-Players.PlayerAdded:Connect(function(plr)
-	plr.CharacterAdded:Connect(function(char)
-		for _, obj in ipairs(char:GetDescendants()) do
-			applyRTXReflectanceToAppearance(obj)
-		end
-	end)
 end)
 
 -- ===== GOD RAYS =====
