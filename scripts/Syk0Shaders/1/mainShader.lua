@@ -1,6 +1,6 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/intro.lua"))()
 
--- 🌅 ILUMINACIÓN REALISTA + EFECTOS VISUALES + BLUR DINÁMICO + RTX + GOD RAYS
+-- 🌅 ILUMINACIÓN REALISTA + EFECTOS VISUALES + BLUR DINÁMICO + RTX + GOD RAYS + REFLEJOS EN ROPA
 
 -- ===== SERVICIOS =====
 local Lighting = game:GetService("Lighting")
@@ -63,7 +63,7 @@ cc.Parent = Lighting
 -- ===== BLOOM =====
 local bloom = Instance.new("BloomEffect")
 bloom.Name = "RealisticBloom"
-bloom.Intensity = 0.5
+bloom.Intensity = 0.26
 bloom.Size = 3000
 bloom.Threshold = 1.0
 bloom.Parent = Lighting
@@ -114,7 +114,7 @@ if not hasSky then
 	sky.Parent = Lighting
 end
 
--- ===== BLUR DINÁMICO (TU ORIGINAL) =====
+-- ===== BLUR DINÁMICO =====
 local currentBlur = 0
 local lastLookVector = camera.CFrame.LookVector
 local blurDecaySpeed = 2
@@ -211,12 +211,65 @@ workspace.DescendantAdded:Connect(function(obj)
 	applyRTXReflectance(obj)
 end)
 
--- ===== GOD RAYS DINÁMICOS =====
-local function setupGodRays()
-	sunRays.Intensity = 0.2
-	sunRays.Spread = 1.0
+-- ===== REFLEJOS EN ROPA Y COSMÉTICOS =====
+local function applyRTXReflectanceToAppearance(obj)
+	if obj:IsA("BasePart") then
+		if obj.Reflectance < 0.2 then
+			obj.Reflectance = 0.25
+		end
+		obj.CastShadow = true
+	end
+
+	if obj:IsA("Accessory") then
+		if obj:FindFirstChild("Handle") then
+			applyRTXReflectanceToAppearance(obj.Handle)
+		end
+	end
+	
+	if obj:IsA("Hat") or obj:IsA("Tool") then
+		for _, sub in ipairs(obj:GetDescendants()) do
+			if sub:IsA("BasePart") then
+				applyRTXReflectanceToAppearance(sub)
+			end
+			if sub:IsA("Decal") then
+				sub.Transparency = math.clamp(sub.Transparency - 0.1, 0, 1)
+			end
+			if sub:IsA("SurfaceAppearance") then
+				sub.Reflectance = math.clamp(sub.Reflectance + 0.2, 0, 1)
+			end
+		end
+	end
 end
 
-setupGodRays()
+for _, obj in ipairs(workspace:GetDescendants()) do
+	applyRTXReflectanceToAppearance(obj)
+end
 
-print("🌇 RTX + God Rays + Iluminación realista aplicada correctamente.")
+workspace.DescendantAdded:Connect(function(obj)
+	applyRTXReflectanceToAppearance(obj)
+end)
+
+for _, plr in pairs(Players:GetPlayers()) do
+	if plr.Character then
+		for _, obj in ipairs(plr.Character:GetDescendants()) do
+			applyRTXReflectanceToAppearance(obj)
+		end
+	end
+end
+
+Players.PlayerAdded:Connect(function(plr)
+	plr.CharacterAdded:Connect(function(char)
+		for _, obj in ipairs(char:GetDescendants()) do
+			applyRTXReflectanceToAppearance(obj)
+		end
+	end)
+end)
+
+-- ===== GOD RAYS =====
+sunRays.Intensity = 1.8
+sunRays.Spread = 1.5
+atmosphere.Glare = 0.7
+atmosphere.Haze = 0.4
+atmosphere.Density = 0.7
+
+print("🌇 RTX + God Rays + Iluminación realista + Reflejos en ropa aplicada correctamente.")
