@@ -36,12 +36,12 @@ end)
 -- ===== ATMOSPHERE =====
 local atmosphere = Instance.new("Atmosphere")
 atmosphere.Name = "RealisticAtmosphere"
-atmosphere.Density = 0.48
+atmosphere.Density = 0.6
 atmosphere.Offset = 0.0
 atmosphere.Color = Color3.fromRGB(255, 255, 255)
 atmosphere.Decay = Color3.fromRGB(185, 185, 185)
-atmosphere.Glare = 0.8
-atmosphere.Haze = 0.2
+atmosphere.Glare = 0.0
+atmosphere.Haze = 0.0
 atmosphere.Parent = Lighting
 
 -- ===== COLOR CORRECTION =====
@@ -49,30 +49,30 @@ local cc = Instance.new("ColorCorrectionEffect")
 cc.Name = "RealisticColorCorrection"
 cc.Brightness = -0.12
 cc.Contrast = 0.45
-cc.Saturation = 0.45
+cc.Saturation = 0.2
 cc.TintColor = Color3.fromRGB(242, 255, 255)
 cc.Parent = Lighting
 
 -- ===== BLOOM =====
 local bloom = Instance.new("BloomEffect")
 bloom.Name = "RealisticBloom"
-bloom.Intensity = 0.5
-bloom.Size = 2000
+bloom.Intensity = 0.2
+bloom.Size = 2800
 bloom.Threshold = 1.0
 bloom.Parent = Lighting
 
 local bloom2 = Instance.new("BloomEffect")
 bloom2.Name = "RealisticBloom2"
-bloom2.Intensity = 0.2
-bloom2.Size = 0.05
-bloom2.Threshold = 5.0
+bloom2.Intensity = 0.001
+bloom2.Size = 0.01
+bloom2.Threshold = 0.5
 bloom2.Parent = Lighting
 
 -- ===== SUNRAYS =====
 local sunRays = Instance.new("SunRaysEffect")
 sunRays.Name = "RealisticSunRays"
 sunRays.Intensity = 1.0
-sunRays.Spread = 8.0
+sunRays.Spread = 1.0
 sunRays.Parent = Lighting
 
 local sunLight = Instance.new("DirectionalLight")
