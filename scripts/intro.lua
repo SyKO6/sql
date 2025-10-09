@@ -1,4 +1,4 @@
--- ===== INTRO SCRIPT AJUSTADO CON BLUR PROPIO =====
+-- ===== INTRO SCRIPT COMPLETO AJUSTADO =====
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
@@ -10,15 +10,13 @@ local playerGui = player:WaitForChild("PlayerGui")
 local introGui = Instance.new("ScreenGui", playerGui)
 introGui.Name = "IntroGUI"
 
--- Crear BLUR específico para la intro
-local introBlur = Instance.new("BlurEffect")
-introBlur.Name = "IntroBlur"
-introBlur.Size = 0
-introBlur.Parent = Lighting
+-- Blur
+local blur = Instance.new("BlurEffect", Lighting)
+blur.Size = 0
 
 -- ColorCorrection para "opacidad"
 local colorCorrection = Instance.new("ColorCorrectionEffect", Lighting)
-colorCorrection.Brightness = -0.8
+colorCorrection.Brightness = -0.8 -- Baja brillo 50%
 colorCorrection.Contrast = 0
 colorCorrection.Saturation = 0
 
@@ -65,7 +63,7 @@ local tween = TweenService:Create(image, tweenInfo, {Position = UDim2.new(0.5, -
 tween:Play()
 
 -- Subir blur y brillo
-TweenService:Create(introBlur, TweenInfo.new(2), {Size = 80}):Play()
+TweenService:Create(blur, TweenInfo.new(2), {Size = 80}):Play()
 TweenService:Create(colorCorrection, TweenInfo.new(2), {Brightness = 0}):Play()
 wait(2.5)
 
@@ -83,7 +81,7 @@ finalGui.Name = "FinalIntro"
 
 local title = Instance.new("TextLabel", finalGui)
 title.Size = UDim2.new(1, 0, 0.3, 0)
-title.Position = UDim2.new(0, 0, 0.35, 0)
+title.Position = UDim2.new(0, 0, 0.35, 0) -- centrado verticalmente
 title.Text = "— Syk0 —"
 title.Font = Enum.Font.SourceSansBold
 title.TextSize = 48
@@ -108,6 +106,7 @@ desc.TextYAlignment = Enum.TextYAlignment.Center
 desc.TextXAlignment = Enum.TextXAlignment.Center
 
 local descriptionText = "Script creada por mí, modificación permitida."
+
 spawn(function()
 	for i = 1, #descriptionText do
 		desc.Text = string.sub(descriptionText, 1, i)
@@ -121,16 +120,10 @@ wait(3)
 -- ===== FADE-OUT FINAL =====
 TweenService:Create(title, TweenInfo.new(1.5), {TextTransparency = 1}):Play()
 TweenService:Create(desc, TweenInfo.new(1.5), {TextTransparency = 1}):Play()
-TweenService:Create(introBlur, TweenInfo.new(1.5), {Size = 0}):Play()
+TweenService:Create(blur, TweenInfo.new(1.5), {Size = 0}):Play()
 TweenService:Create(colorCorrection, TweenInfo.new(1.5), {Brightness = -0.8}):Play()
 
 wait(1.5)
 finalGui:Destroy()
-
--- Eliminar solo el blur de la intro
-if introBlur then
-	introBlur:Destroy()
-end
-
+blur:Destroy()
 colorCorrection:Destroy()
-introGui:Destroy()
