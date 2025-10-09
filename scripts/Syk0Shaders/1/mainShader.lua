@@ -194,53 +194,48 @@ task.spawn(function()
 end)
 
 -- ===== REFLEJO PBR DINÁMICO =====
-local function applyPBRSurface(part)
-    if not part:IsA("BasePart") or part:FindFirstChild("PBRSurface") then
-        return
-    end
 
-    local sa = Instance.new("SurfaceAppearance")
-    sa.Name     = "PBRSurface"
-    sa.Parent   = part
+-- 🌟 Efecto de luz metálica sin cambiar el material original
+local function applyMetalShader(part)
+	if not part:IsA("BasePart") then return end
 
-    -- Si la parte tiene textura, la usamos como color map
-    if part.TextureID and part.TextureID ~= "" then
-        sa.ColorMap = part.TextureID
-    end
+	local sa = part:FindFirstChild("MetalShader")
+	if not sa then
+		sa = Instance.new("SurfaceAppearance")
+		sa.Name = "MetalShader"
+		sa.Parent = part
+	end
 
-    -- Valores base para metalidad y rugosidad
-    sa.Metalness = 1.0
-    sa.Roughness = 0.05
+	-- Valores base para brillo metálico
+	sa.Metalness = 0.8
+	sa.Roughness = 0.1
+	sa.Specular = Color3.fromRGB(255, 255, 255)
 end
 
-local function updatePBR()
-    local camPos = camera.CFrame.Position
-
-    for _, part in ipairs(workspace:GetDescendants()) do
-        if part:IsA("BasePart") then
-            applyPBRSurface(part)
-
-            local sa = part:FindFirstChild("PBRSurface")
-            if sa then
-                local normal = part.CFrame.LookVector
-                local toCam  = (camPos - part.Position).Unit
-                local dot    = math.clamp(normal:Dot(toCam), 0, 1)
-
-                -- Ajuste dinámico
-                sa.Metalness = math.clamp(0.3 + dot * 0.7, 0, 1)
-                sa.Roughness = math.clamp(0.1 + (1 - dot) * 0.4, 0, 1)
-            end
-        end
-    end
+-- Aplica a todo lo existente
+for _, obj in ipairs(workspace:GetDescendants()) do
+	applyMetalShader(obj)
 end
 
-RunService.RenderStepped:Connect(updatePBR)
-updatePBR()
-
+-- Aplica a lo nuevo que aparezca
 workspace.DescendantAdded:Connect(function(obj)
-    if obj:IsA("BasePart") then
-        applyPBRSurface(obj)
-    end
+	applyMetalShader(obj)
+end)
+
+-- Aplica a personajes
+local function applyToCharacter(char)
+	for _, obj in ipairs(char:GetDescendants()) do
+		applyMetalShader(obj)
+	end
+end
+
+for _, plr in ipairs(game:GetService("Players"):GetPlayers()) do
+	if plr.Character then applyToCharacter(plr.Character) end
+	plr.CharacterAdded:Connect(applyToCharacter)
+end
+
+game:GetService("Players").PlayerAdded:Connect(function(plr)
+	plr.CharacterAdded:Connect(applyToCharacter)
 end)
 
 -- ===== GOD RAYS AJUSTADOS =====
