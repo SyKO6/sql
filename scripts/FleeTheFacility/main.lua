@@ -19,11 +19,9 @@ player.CameraMode = Enum.CameraMode.Classic
 player.DevCameraOcclusionMode = Enum.DevCameraOcclusionMode.Invisicam
 player.CameraMaxZoomDistance = 1000
 
---// Corrección de iluminación
+--// Corrección de iluminación (visión clara, sin tinte verde)
 Lighting.GlobalShadows = false
-if Lighting:FindFirstChildOfClass("Atmosphere") then
-	Lighting:FindFirstChildOfClass("Atmosphere").Density = 0
-end
+Lighting.Atmosphere.Density = 0
 Lighting.Brightness = 3
 Lighting.FogEnd = 100000
 Lighting.ExposureCompensation = 0.5
@@ -34,9 +32,8 @@ task.spawn(function()
 		if Lighting.GlobalShadows then
 			Lighting.GlobalShadows = false
 		end
-		local atmos = Lighting:FindFirstChildOfClass("Atmosphere")
-		if atmos and atmos.Density ~= 0 then
-			atmos.Density = 0
+		if Lighting.Atmosphere and Lighting.Atmosphere.Density ~= 0 then
+			Lighting.Atmosphere.Density = 0
 		end
 	end
 end)
@@ -58,7 +55,15 @@ local function enforceWalkSpeed()
 			local beast = isBeast.Value
 
 			if not beast then
-				humanoid.WalkSpeed = crawling and crawlSpeed or normalSpeed
+				if crawling then
+					if humanoid.WalkSpeed ~= crawlSpeed then
+						humanoid.WalkSpeed = crawlSpeed
+					end
+				else
+					if humanoid.WalkSpeed ~= normalSpeed then
+						humanoid.WalkSpeed = normalSpeed
+					end
+				end
 			end
 		end
 	end)
@@ -69,21 +74,26 @@ if player.Character then
 end
 player.CharacterAdded:Connect(enforceWalkSpeed)
 
---// ESP AVANZADO
+--// Función para oscurecer color un % dado
+local function darkenColor(color, percent)
+	return Color3.new(
+		color.R * (1 - percent),
+		color.G * (1 - percent),
+		color.B * (1 - percent)
+	)
+end
+
+--// ESP avanzado
 local function createESP(target)
 	if target == player then return end
-	repeat task.wait() until target.Character and target.Character:FindFirstChild("HumanoidRootPart") and target.Character:FindFirstChild("Head")
 
-	-- Highlight
 	local highlight = Instance.new("Highlight")
 	highlight.Name = "ESPHighlight"
 	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 	highlight.FillTransparency = 1
 	highlight.OutlineTransparency = 0
-	highlight.Adornee = target.Character
 	highlight.Parent = target.Character
 
-	-- Nombre flotante
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "NameTag"
 	billboard.Size = UDim2.new(0, 220, 0, 18)
@@ -100,82 +110,73 @@ local function createESP(target)
 	nameLabel.TextScaled = true
 	nameLabel.Parent = billboard
 
-	-- === TRACKER 3D (GARANTIZADO FUNCIONAL) ===
-    local camPart = Instance.new("Part")
-    camPart.Name = "CamPart_" .. target.Name
-    camPart.Anchored = true
-    camPart.CanCollide = false
-    camPart.Transparency = 1
-    camPart.Size = Vector3.new(0.2, 0.2, 0.2)
-    camPart.Parent = workspace
-    
-    local camAttach = Instance.new("Attachment")
-    camAttach.Name = "CameraAttach"
-    camAttach.Parent = camPart
-    
-    local root = target.Character:WaitForChild("HumanoidRootPart")
-    
-    local targetAttach = Instance.new("Attachment")
-    targetAttach.Name = "TargetAttach"
-    targetAttach.Parent = root
-    
-    local beam = Instance.new("Beam")
-    beam.Attachment0 = camAttach
-    beam.Attachment1 = targetAttach
-    beam.FaceCamera = true
-    beam.LightEmission = 1
-    beam.Width0 = 0.1
-    beam.Width1 = 0.1
-    beam.Transparency = NumberSequence.new(0.15)
-    beam.Segments = 1
-    beam.Parent = workspace
-    beam.Enabled = true
-    
-    -- Color base del jugador
-    local function getColor(plr)
-    	local tempStats = plr:FindFirstChild("TempPlayerStatsModule")
-    	if not tempStats then return Color3.fromRGB(255, 255, 255) end
-    	if tempStats:FindFirstChild("IsBeast") and tempStats.IsBeast.Value then
-    		return Color3.fromRGB(255, 0, 0)
-    	elseif tempStats:FindFirstChild("Captured") and tempStats.Captured.Value then
-    		return Color3.fromRGB(150, 220, 255)
-    	elseif tempStats:FindFirstChild("CurrentAnimation") and tempStats.CurrentAnimation.Value == "Typing" then
-    		return Color3.fromRGB(0, 255, 0)
-    	else
-    		return Color3.fromRGB(255, 255, 255)
-    	end
-    end
-    
-    RunService.RenderStepped:Connect(function()
-    	if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then
-    		beam.Enabled = false
-    		return
-    	end
-    
-    	-- Mantener la posición del punto de la cámara
-    	camPart.CFrame = CFrame.new(camera.CFrame.Position)
-    
-    	-- Actualizar color dinámico
-    	local col = getColor(target)
-    
-    	-- Cambiar color si hay bestia cerca
-    	for _, plr in pairs(Players:GetPlayers()) do
-    		local stats = plr:FindFirstChild("TempPlayerStatsModule")
-    		if stats and stats:FindFirstChild("IsBeast") and stats.IsBeast.Value and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-    			local dist = (plr.Character.HumanoidRootPart.Position - root.Position).Magnitude
-    			if dist < 30 and not (stats.IsBeast.Value and plr == target) then
-    				col = Color3.fromRGB(255, 180, 50)
-    				break
-    			end
-    		end
-    	end
-    
-    	beam.Color = ColorSequence.new(col)
-    	beam.Enabled = true
-    end)
+	RunService.RenderStepped:Connect(function()
+		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then return end
+		local dist = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
+
+		local tempStats = target:FindFirstChild("TempPlayerStatsModule")
+		local isBeast = tempStats and tempStats:FindFirstChild("IsBeast")
+		local captured = tempStats and tempStats:FindFirstChild("Captured")
+		local crawling = tempStats and tempStats:FindFirstChild("IsCrawling")
+		local currentAnim = tempStats and tempStats:FindFirstChild("CurrentAnimation")
+
+		local beastValue = (isBeast and isBeast.Value)
+		local capturedValue = (captured and captured.Value)
+		local crawlingValue = (crawling and crawling.Value)
+		local currentAnimValue = (currentAnim and currentAnim.Value) or ""
+
+		-- Color base
+		local color = Color3.fromRGB(255, 255, 255) -- Human
+		if beastValue then
+			color = Color3.fromRGB(255, 0, 0) -- Beast
+		end
+
+		-- Si el jugador está capturado
+		if capturedValue then
+			color = Color3.fromRGB(150, 220, 255) -- Azul hielo
+		end
+
+		-- Si la animación actual es "Typing"
+		if currentAnimValue == "Typing" then
+			color = Color3.fromRGB(0, 255, 0) -- Verde lima
+		end
+
+		-- Si está dentro del rango de peligro de la bestia (<30 studs)
+		local beast = nil
+		for _, plr in pairs(Players:GetPlayers()) do
+			local ts = plr:FindFirstChild("TempPlayerStatsModule")
+			if ts and ts:FindFirstChild("IsBeast") and ts.IsBeast.Value then
+				beast = plr
+				break
+			end
+		end
+		if beast and beast.Character and beast.Character:FindFirstChild("HumanoidRootPart") then
+			local beastDist = (beast.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
+			if beastDist < 30 and not beastValue then
+				color = Color3.fromRGB(255, 180, 50) -- Naranja-amarillo
+			end
+		end
+
+		-- Si está agachado (IsCrawling), baja 30% el brillo del color actual
+		if crawlingValue then
+			local r,g,b = color.R * 255, color.G * 255, color.B * 255
+			color = Color3.fromRGB(r * 0.7, g * 0.7, b * 0.7)
+		end
+
+		highlight.OutlineColor = color
+		nameLabel.TextColor3 = color
+		nameLabel.Text = string.format("%s [%s (%.0f%%)] - %.1f", 
+			target.Name, 
+			beastValue and "Beast" or "Human", 
+			(target:FindFirstChild("SavedPlayerStatsModule") 
+				and target.SavedPlayerStatsModule:FindFirstChild("BeastChance") 
+				and target.SavedPlayerStatsModule.BeastChance.Value) or 0, 
+			dist
+		)
+	end)
 end
 
--- Aplicar ESP a todos los jugadores
+--// Aplicar ESP a todos los jugadores
 for _, plr in pairs(Players:GetPlayers()) do
 	if plr ~= player then
 		plr.CharacterAdded:Connect(function()
