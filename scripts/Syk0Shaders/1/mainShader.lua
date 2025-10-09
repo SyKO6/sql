@@ -2,9 +2,6 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/
 
 -- 🌅 ILUMINACIÓN REALISTA + EFECTOS VISUALES + BLUR DINÁMICO
 
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-
 -- ===== SERVICIOS =====
 local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
@@ -13,6 +10,9 @@ local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
+
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
 
 -- ===== LIMPIEZA DE LIGHTING =====
 for _, child in ipairs(Lighting:GetChildren()) do
