@@ -6,7 +6,6 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/
 local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 
 -- ===== LIMPIEZA DE LIGHTING =====
 for _, child in ipairs(Lighting:GetChildren()) do
@@ -95,7 +94,7 @@ blur.Name = "RealisticBlur"
 blur.Size = 100
 blur.Parent = Lighting
 
--- Suaviza el blur inicial (fade-in de entrada)
+-- Suaviza el blur inicial
 task.spawn(function()
 	for i = 100, 0, -2 do
 		blur.Size = i
@@ -129,39 +128,29 @@ end
 -- ===== VARIABLES =====
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-local camera = workspace.CurrentCamera
-
-local currentBlur = 0
-local blurTarget = 0
-
--- ===== FUNCIÓN SUAVIZADO =====
-local function tweenBlur(target, speed)
-	task.spawn(function()
-		local step = (target - currentBlur) / (speed * 30)
-		for i = 1, math.abs(speed * 30) do
-			currentBlur += step
-			blur.Size = math.clamp(currentBlur, 0, 15)
-			task.wait(1/30)
-		end
-	end)
+local humanoid = character:WaitForChild("Humanoid", 5)
+if not humanoid then
+	warn("⚠️ No se encontró el Humanoid, el blur por daño no se activará.")
+	return
 end
 
--- ===== BLUR POR MOVIMIENTO DE CÁMARA (SOLO GIROS EXTREMADAMENTE BRUSCOS) =====
-local lastLookVector = camera.CFrame.LookVector
-local blurDecaySpeed = 2   -- qué tan rápido se desvanece el blur
-local blurIncreaseSpeed = 8 -- qué tan rápido aparece
-local blurThreshold = 0.22   -- 🔥 sensibilidad MUY alta (debe ser un giro rapidísimo para activar)
+local camera = workspace.CurrentCamera
+local currentBlur = 0
+
+-- ===== BLUR POR MOVIMIENTO DE CÁMARA (FUNCIONAL) =====
+local lastYaw, lastPitch, lastRoll = camera.CFrame:ToOrientation()
+local blurDecaySpeed = 2
+local blurIncreaseSpeed = 8
+local blurThreshold = 0.015  -- sensibilidad ajustada
 
 RunService.RenderStepped:Connect(function(dt)
-	local currentLookVector = camera.CFrame.LookVector
-	local rotationChange = (currentLookVector - lastLookVector).Magnitude
-	lastLookVector = currentLookVector
+	local yaw, pitch, _ = camera.CFrame:ToOrientation()
+	local rotationChange = math.abs(yaw - lastYaw) + math.abs(pitch - lastPitch)
+	lastYaw, lastPitch = yaw, pitch
 
 	local intensity = 0
 	if rotationChange > blurThreshold then
-		-- se activa solo si el movimiento supera muchísimo el umbral
-		intensity = math.clamp((rotationChange - blurThreshold) * 1200, 0, 1)
+		intensity = math.clamp((rotationChange - blurThreshold) * 4000, 0, 1)
 	end
 
 	if intensity > currentBlur then
@@ -177,9 +166,8 @@ end)
 local lastHealth = humanoid.Health
 humanoid.HealthChanged:Connect(function(hp)
 	if hp < lastHealth then
-		-- Efecto "shot" de blur al recibir daño
 		task.spawn(function()
-			local peak = 10  -- intensidad del golpe visual
+			local peak = 10
 			blur.Size = peak
 			for i = peak, 0, -1 do
 				blur.Size = i
@@ -193,10 +181,11 @@ end)
 -- ===== BLUR POR BAJA VIDA =====
 humanoid.HealthChanged:Connect(function(hp)
 	local percent = hp / humanoid.MaxHealth
-	if percent < 0.15 then
-		local extra = math.clamp((0.15 - percent) * 100, 0, 15)
-		blur.Size = math.max(blur.Size, extra)
+	local lowHealthBlur = 0
+	if percent < 0.25 then
+		lowHealthBlur = math.clamp((0.25 - percent) * 60, 0, 10)
 	end
+	blur.Size = math.max(blur.Size, lowHealthBlur)
 end)
 
-print("🌇 Iluminación realista + blur dinámico aplicado correctamente.")
+print("🌇 Iluminación realista + blur dinámico funcionando correctamente ✅")
