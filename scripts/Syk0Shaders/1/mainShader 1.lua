@@ -1,6 +1,6 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/intro.lua"))()
 
--- 🌅 ILUMINACIÓN REALISTA + EFECTOS VISUALES + BLUR DINÁMICO + SOMBRAS + REFLEJOS
+-- 🌅 ILUMINACIÓN REALISTA + EFECTOS VISUALES + BLUR DINÁMICO
 
 -- ===== SERVICIOS =====
 local Lighting = game:GetService("Lighting")
@@ -23,7 +23,7 @@ end
 
 -- ===== AJUSTES BASE =====
 pcall(function()
-	Lighting.ClockTime = 14 -- Hora del día para sol alto
+	Lighting.ClockTime = 13.2
 	Lighting.Brightness = 5
 	Lighting.Ambient = Color3.fromRGB(0, 0, 0)
 	Lighting.OutdoorAmbient = Color3.fromRGB(0, 0, 0)
@@ -31,12 +31,12 @@ pcall(function()
 	Lighting.FogEnd = 2800
 	Lighting.FogColor = Color3.fromRGB(0, 0, 0)
 	Lighting.GlobalShadows = true
-	Lighting.EnvironmentDiffuseScale = 1.5
-	Lighting.EnvironmentSpecularScale = 1.5
+	Lighting.EnvironmentDiffuseScale = 1.0
+	Lighting.EnvironmentSpecularScale = 1.0
 	Lighting.Technology = Enum.Technology.Future
 end)
 
--- ===== REALISTIC BLUR =====
+-- Crear RealisticBlur desde el inicio
 local blur = Instance.new("BlurEffect")
 blur.Name = "RealisticBlur"
 blur.Size = 0
@@ -84,6 +84,21 @@ sunRays.Intensity = 1.0
 sunRays.Spread = 1.0
 sunRays.Parent = Lighting
 
+local directionalLight = Instance.new("DirectionalLight")
+directionalLight.Name = "RealisticSunLight"
+directionalLight.Color = Color3.fromRGB(255, 244, 214)
+directionalLight.Brightness = 2
+directionalLight.Shadows = true
+directionalLight.Parent = Lighting
+
+-- Dirección del sol
+directionalLight.CFrame = CFrame.new(Vector3.new(0,0,0), Vector3.new(-1, -1, -1))
+
+-- Parámetros extra para sombras más suaves y realistas
+directionalLight.ShadowSoftness = 0.6   -- suaviza bordes de sombras
+directionalLight.ShadowBias = 0.05      -- reduce artefactos de sombras
+directionalLight.ShadowResolution = Enum.ShadowResolution.Medium
+
 -- ===== DEPTH OF FIELD =====
 local dof = Instance.new("DepthOfFieldEffect")
 dof.Name = "RealisticDepthOfField"
@@ -105,8 +120,9 @@ local function ensureRealisticBlur()
 	return blur
 end
 
-blur = ensureRealisticBlur()
+local blur = ensureRealisticBlur()
 
+-- Monitor para recrear blur si se borra
 Lighting.ChildRemoved:Connect(function(child)
 	if child.Name == "RealisticBlur" then
 		task.wait(0.1)
@@ -114,8 +130,22 @@ Lighting.ChildRemoved:Connect(function(child)
 	end
 end)
 
--- ===== BLUR DINÁMICO =====
+-- ===== SUAVIZADO DEL BLUR =====
 local currentBlur = 0
+local blurTarget = 0
+
+local function tweenBlur(target, speed)
+	task.spawn(function()
+		local step = (target - currentBlur) / (speed * 30)
+		for i = 1, math.abs(speed * 30) do
+			currentBlur += step
+			blur.Size = math.clamp(currentBlur, 0, 15)
+			task.wait(1/30)
+		end
+	end)
+end
+
+-- ===== BLUR DINÁMICO =====
 local lastLookVector = camera.CFrame.LookVector
 local blurDecaySpeed = 2
 local blurIncreaseSpeed = 8
@@ -196,22 +226,4 @@ if not hasSky then
 	sky.Parent = Lighting
 end
 
--- ===== REFLEJOS Y SOMBRAS AUTOMÁTICOS =====
-for _, obj in pairs(workspace:GetDescendants()) do
-	if obj:IsA("BasePart") then
-		if obj.Reflectance == 0 then
-			obj.Reflectance = 0.2
-		end
-		obj.CastShadow = true
-	end
-end
-
--- ===== AJUSTE DINÁMICO DEL SOL =====
-RunService.RenderStepped:Connect(function()
-	Lighting.ClockTime = 14 -- ajustar hora del día
-	if Lighting:FindFirstChild("RealisticSky") then
-		Lighting.RealisticSky.SunAngularSize = 12
-	end
-end)
-
-print("🌇 Iluminación realista con rayos, sombras y reflejos aplicada correctamente.")
+print("🌇 Iluminación realista + blur dinámico aplicado correctamente.")
