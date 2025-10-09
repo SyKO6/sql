@@ -56,14 +56,14 @@ local cc = Instance.new("ColorCorrectionEffect")
 cc.Name = "RealisticColorCorrection"
 cc.Brightness = -0.15
 cc.Contrast = 0.5
-cc.Saturation = 0.4
+cc.Saturation = 0.45
 cc.TintColor = Color3.fromRGB(242, 255, 255)
 cc.Parent = Lighting
 
 -- ===== BLOOM =====
 local bloom = Instance.new("BloomEffect")
 bloom.Name = "RealisticBloom"
-bloom.Intensity = 0.26
+bloom.Intensity = 0.22
 bloom.Size = 3000
 bloom.Threshold = 1.0
 bloom.Parent = Lighting
@@ -215,7 +215,7 @@ end)
 local function applyRTXReflectanceToAppearance(obj)
 	if obj:IsA("BasePart") then
 		if obj.Reflectance < 0.2 then
-			obj.Reflectance = 0.25
+			obj.Reflectance = 0.4
 		end
 		obj.CastShadow = true
 	end
@@ -232,10 +232,10 @@ local function applyRTXReflectanceToAppearance(obj)
 				applyRTXReflectanceToAppearance(sub)
 			end
 			if sub:IsA("Decal") then
-				sub.Transparency = math.clamp(sub.Transparency - 0.1, 0, 1)
+				sub.Transparency = math.clamp(sub.Transparency - 0.22, 0, 1)
 			end
 			if sub:IsA("SurfaceAppearance") then
-				sub.Reflectance = math.clamp(sub.Reflectance + 0.2, 0, 1)
+				sub.Reflectance = math.clamp(sub.Reflectance + 0.22, 0, 1)
 			end
 		end
 	end
@@ -268,8 +268,5 @@ end)
 -- ===== GOD RAYS =====
 sunRays.Intensity = 1.8
 sunRays.Spread = 1.5
-atmosphere.Glare = 0.7
-atmosphere.Haze = 0.4
-atmosphere.Density = 0.7
 
 print("🌇 RTX + God Rays + Iluminación realista + Reflejos en ropa aplicada correctamente.")
