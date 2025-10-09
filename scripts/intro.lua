@@ -131,3 +131,6 @@ finalGui:Destroy()
 if introBlur then
 	introBlur:Destroy()
 end
+
+colorCorrection:Destroy()
+introGui:Destroy()
