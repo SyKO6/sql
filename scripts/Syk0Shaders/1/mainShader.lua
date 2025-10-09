@@ -193,54 +193,49 @@ task.spawn(function()
     end
 end)
 
--- ===== REFLEJO PBR DINÁMICO TOTAL =====
+-- ===== REFLEJO METÁLICO REAL =====
 
--- ✨ Reflejo metálico sin perder color o textura original
-local function applyMetalReflection(obj)
+-- 🌟 Hace que todos los objetos tengan reflejo de metal real sin borrar su color/texture
+local function applyTrueMetal(obj)
 	if not obj:IsA("BasePart") then return end
 
-	-- Mantener material original, pero mejorar reflejo global
-	obj.Reflectance = 0.35
-	obj.Material = obj.Material -- mantener material actual
-	obj.CastShadow = true
-
-	-- Ajustar color ligeramente hacia tonos fríos (reflejo metálico)
-	local originalColor = obj.Color
-	obj.Color = Color3.new(
-		math.clamp(originalColor.R * 1.05, 0, 1),
-		math.clamp(originalColor.G * 1.05, 0, 1),
-		math.clamp(originalColor.B * 1.05, 0, 1)
-	)
-
-	-- Añadir SurfaceAppearance si no tiene
-	local sa = obj:FindFirstChildOfClass("SurfaceAppearance")
-	if not sa then
-		sa = Instance.new("SurfaceAppearance")
-		sa.Name = "MetalReflection"
-		sa.Parent = obj
+	-- Evita alterar partes especiales del sistema
+	if obj.Name:match("Handle") or obj.Name:match("Accessory") then
+		obj.Material = Enum.Material.Metal
+		obj.Reflectance = 0.35
+		return
 	end
 
-	-- Parámetros PBR tipo metal pulido
-	sa.Metalness = 0.85
-	sa.Roughness = 0.08
-	sa.Specular = Color3.fromRGB(255, 255, 255)
+	local originalColor = obj.Color
+
+	-- Solo cambiar si no es ya metal
+	if obj.Material ~= Enum.Material.Metal then
+		obj.Material = Enum.Material.Metal
+	end
+
+	-- Ajustar reflejo metálico moderado
+	obj.Reflectance = 0.3
+
+	-- Conservar el color visual original
+	obj.Color = originalColor
+	obj.CastShadow = true
 end
 
--- 🌌 Aplicar reflejo a todo el mapa
+-- 🧱 Aplicar a todo el mapa
 for _, v in ipairs(workspace:GetDescendants()) do
-	applyMetalReflection(v)
+	applyTrueMetal(v)
 end
 
--- 🌠 Mantener reflejo en nuevos objetos
+-- 🔄 Aplicar a nuevos objetos en tiempo real
 workspace.DescendantAdded:Connect(function(obj)
 	task.wait(0.05)
-	applyMetalReflection(obj)
+	applyTrueMetal(obj)
 end)
 
--- 🧍 Aplicar reflejo metálico a los jugadores
+-- 🧍 Aplicar a personajes
 local function applyToCharacter(character)
 	for _, obj in ipairs(character:GetDescendants()) do
-		applyMetalReflection(obj)
+		applyTrueMetal(obj)
 	end
 end
 
@@ -253,11 +248,11 @@ Players.PlayerAdded:Connect(function(plr)
 	plr.CharacterAdded:Connect(applyToCharacter)
 end)
 
--- 🌞 Aumentar brillo ambiental para reflejar mejor la luz metálica
-Lighting.EnvironmentSpecularScale = 8
-Lighting.EnvironmentDiffuseScale  = 3.2
-Lighting.Brightness = 6
-Lighting.Ambient = Color3.fromRGB(50, 50, 50)
+-- 🔆 Ajustes globales de iluminación para que el metal refleje correctamente
+Lighting.EnvironmentSpecularScale = 3.5
+Lighting.EnvironmentDiffuseScale  = 2.5
+Lighting.Brightness = 3.2
+Lighting.Ambient = Color3.fromRGB(40, 40, 40)
 Lighting.OutdoorAmbient = Color3.fromRGB(60, 60, 60)
 
-print("💫 Reflejo metálico PBR aplicado a todos los objetos sin perder textura ni color.")
+print("🔩 Material metálico real aplicado correctamente a todos los objetos y jugadores.")
