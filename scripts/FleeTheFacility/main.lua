@@ -191,7 +191,7 @@ local function createESP(target)
 		local direction = (targetTorso.Position - playerTorso.Position)
 		local distance = direction.Magnitude
 
-		trackerPart.Size = Vector3.new(0.05, 0.05, distance)
+		trackerPart.Size = Vector3.new(0.08, 0.08, distance)
 		trackerPart.CFrame = CFrame.lookAt(midpoint, targetTorso.Position)
 		trackerPart.Color = color
 		trackerPart.Transparency = 0.35
