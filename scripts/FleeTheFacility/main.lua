@@ -237,32 +237,3 @@ Players.PlayerAdded:Connect(function(plr)
 		createESP(plr)
 	end)
 end)
-
---// 🟣 Mensaje informativo en el chat
-local function sendChat(msg)
-	local success = false
-	repeat
-		success = pcall(function()
-			game:GetService("StarterGui"):SetCore("ChatMakeSystemMessage", {
-				Text = msg;
-				Color = Color3.fromRGB(200,200,200);
-				Font = Enum.Font.SourceSansBold;
-				TextSize = 18;
-			})
-		end)
-		task.wait(0.5)
-	until success
-end
-
-task.spawn(function()
-	task.wait(2)
-	sendChat("🔰 [Syk0 FTF]")
-	sendChat("⚪ Blanco = Normal")
-	sendChat("🟢 Verde = Hackeando")
-	sendChat("🔵 Azul = Congelado (Captured)")
-	sendChat("🟣 Morado = Ragdoll")
-	sendChat("💜 Púrpura claro = Ragdoll + Bestia cerca")
-	sendChat("🟠 Naranja = Bestia cerca")
-	sendChat("🔴 Rojo = Bestia")
-	sendChat("⚫ Opaco = Agachado (máxima prioridad)")
-end)
