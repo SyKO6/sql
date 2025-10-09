@@ -33,6 +33,12 @@ pcall(function()
 	Lighting.Technology = Enum.Technology.Future
 end)
 
+-- Crear RealisticBlur desde el inicio
+local blur = Instance.new("BlurEffect")
+blur.Name = "RealisticBlur"
+blur.Size = 0
+blur.Parent = Lighting
+
 -- ===== ATMOSPHERE =====
 local atmosphere = Instance.new("Atmosphere")
 atmosphere.Name = "RealisticAtmosphere"
