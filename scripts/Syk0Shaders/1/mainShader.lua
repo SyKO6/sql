@@ -210,7 +210,7 @@ local function applyPBRSurface(part)
 
     -- Valores base para metalidad y rugosidad
     sa.Metalness = 1.0
-    sa.Roughness = 0.2
+    sa.Roughness = 0.4
 end
 
 local function updatePBR()
