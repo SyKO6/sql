@@ -1,3 +1,5 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/intro.lua"))()
+
 -- ===== ILUMINACIÓN REALISTA + BLUR DINÁMICO =====
 local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
