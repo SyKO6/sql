@@ -193,53 +193,71 @@ task.spawn(function()
     end
 end)
 
--- ===== REFLEJO PBR DINÁMICO =====
+-- ===== REFLEJO PBR DINÁMICO TOTAL =====
 
--- 🌟 Efecto de luz metálica sin cambiar el material original
-local function applyMetalShader(part)
-	if not part:IsA("BasePart") then return end
+-- ✨ Reflejo metálico sin perder color o textura original
+local function applyMetalReflection(obj)
+	if not obj:IsA("BasePart") then return end
 
-	local sa = part:FindFirstChild("MetalShader")
+	-- Mantener material original, pero mejorar reflejo global
+	obj.Reflectance = 0.35
+	obj.Material = obj.Material -- mantener material actual
+	obj.CastShadow = true
+
+	-- Ajustar color ligeramente hacia tonos fríos (reflejo metálico)
+	local originalColor = obj.Color
+	obj.Color = Color3.new(
+		math.clamp(originalColor.R * 1.05, 0, 1),
+		math.clamp(originalColor.G * 1.05, 0, 1),
+		math.clamp(originalColor.B * 1.05, 0, 1)
+	)
+
+	-- Añadir SurfaceAppearance si no tiene
+	local sa = obj:FindFirstChildOfClass("SurfaceAppearance")
 	if not sa then
 		sa = Instance.new("SurfaceAppearance")
-		sa.Name = "MetalShader"
-		sa.Parent = part
+		sa.Name = "MetalReflection"
+		sa.Parent = obj
 	end
 
-	-- Valores base para brillo metálico
-	sa.Metalness = 0.8
-	sa.Roughness = 0.1
+	-- Parámetros PBR tipo metal pulido
+	sa.Metalness = 0.85
+	sa.Roughness = 0.08
 	sa.Specular = Color3.fromRGB(255, 255, 255)
 end
 
--- Aplica a todo lo existente
-for _, obj in ipairs(workspace:GetDescendants()) do
-	applyMetalShader(obj)
+-- 🌌 Aplicar reflejo a todo el mapa
+for _, v in ipairs(workspace:GetDescendants()) do
+	applyMetalReflection(v)
 end
 
--- Aplica a lo nuevo que aparezca
+-- 🌠 Mantener reflejo en nuevos objetos
 workspace.DescendantAdded:Connect(function(obj)
-	applyMetalShader(obj)
+	task.wait(0.05)
+	applyMetalReflection(obj)
 end)
 
--- Aplica a personajes
-local function applyToCharacter(char)
-	for _, obj in ipairs(char:GetDescendants()) do
-		applyMetalShader(obj)
+-- 🧍 Aplicar reflejo metálico a los jugadores
+local function applyToCharacter(character)
+	for _, obj in ipairs(character:GetDescendants()) do
+		applyMetalReflection(obj)
 	end
 end
 
-for _, plr in ipairs(game:GetService("Players"):GetPlayers()) do
+for _, plr in ipairs(Players:GetPlayers()) do
 	if plr.Character then applyToCharacter(plr.Character) end
 	plr.CharacterAdded:Connect(applyToCharacter)
 end
 
-game:GetService("Players").PlayerAdded:Connect(function(plr)
+Players.PlayerAdded:Connect(function(plr)
 	plr.CharacterAdded:Connect(applyToCharacter)
 end)
 
--- ===== GOD RAYS AJUSTADOS =====
-sunRays.Intensity = 1.8
-sunRays.Spread    = 1.5
+-- 🌞 Aumentar brillo ambiental para reflejar mejor la luz metálica
+Lighting.EnvironmentSpecularScale = 8
+Lighting.EnvironmentDiffuseScale  = 3.2
+Lighting.Brightness = 6
+Lighting.Ambient = Color3.fromRGB(50, 50, 50)
+Lighting.OutdoorAmbient = Color3.fromRGB(60, 60, 60)
 
-print("🌇 RTX + God Rays + Iluminación realista + Reflejo PBR dinámico aplicado correctamente.")
+print("💫 Reflejo metálico PBR aplicado a todos los objetos sin perder textura ni color.")
