@@ -59,11 +59,11 @@ bloom.Threshold = 1.0
 bloom.Parent = Lighting
 
 local bloom2 = Instance.new("BloomEffect")
-bloom.Name = "RealisticBloom2"
-bloom.Intensity = 0.2
-bloom.Size = 0.05
-bloom.Threshold = 5.0
-bloom.Parent = Lighting
+bloom2.Name = "RealisticBloom2"
+bloom2.Intensity = 0.2
+bloom2.Size = 0.05
+bloom2.Threshold = 5.0
+bloom2.Parent = Lighting
 
 -- ===== SUNRAYS =====
 local sunRays = Instance.new("SunRaysEffect")
