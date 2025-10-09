@@ -42,6 +42,11 @@ blur.Name = "RealisticBlur"
 blur.Size = 0
 blur.Parent = Lighting
 
+local blur2 = Instance.new("BlurEffect")
+blur2.Name = "RealisticBlur2"
+blur2.Size = 2
+blur2.Parent = Lighting
+
 -- ===== ATMOSPHERE =====
 local atmosphere = Instance.new("Atmosphere")
 atmosphere.Name = "RealisticAtmosphere"
