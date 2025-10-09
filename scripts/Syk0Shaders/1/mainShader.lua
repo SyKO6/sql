@@ -31,7 +31,7 @@ Lighting.FogEnd                 = 2800
 Lighting.FogColor               = Color3.fromRGB(0, 0, 0)
 Lighting.GlobalShadows          = true
 Lighting.EnvironmentDiffuseScale= 2.0
-Lighting.EnvironmentSpecularScale= 3.0
+Lighting.EnvironmentSpecularScale= 6.0
 Lighting.Technology             = Enum.Technology.Future
 
 -- ===== REALISTIC BLUR =====
@@ -210,7 +210,7 @@ local function applyPBRSurface(part)
 
     -- Valores base para metalidad y rugosidad
     sa.Metalness = 1.0
-    sa.Roughness = 0.4
+    sa.Roughness = 0.05
 end
 
 local function updatePBR()
