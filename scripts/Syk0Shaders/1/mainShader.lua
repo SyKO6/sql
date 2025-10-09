@@ -248,11 +248,4 @@ Players.PlayerAdded:Connect(function(plr)
 	plr.CharacterAdded:Connect(applyToCharacter)
 end)
 
--- 🔆 Ajustes globales de iluminación para que el metal refleje correctamente
-Lighting.EnvironmentSpecularScale = 3.5
-Lighting.EnvironmentDiffuseScale  = 2.5
-Lighting.Brightness = 3.2
-Lighting.Ambient = Color3.fromRGB(40, 40, 40)
-Lighting.OutdoorAmbient = Color3.fromRGB(60, 60, 60)
-
 print("🔩 Material metálico real aplicado correctamente a todos los objetos y jugadores.")
