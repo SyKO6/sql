@@ -38,7 +38,7 @@ atmosphere.Offset = 0.0
 atmosphere.Color = Color3.fromRGB(255, 255, 255)
 atmosphere.Decay = Color3.fromRGB(185, 185, 185)
 atmosphere.Glare = 0.8
-atmosphere.Haze = 2
+atmosphere.Haze = 0.2
 atmosphere.Parent = Lighting
 
 -- ===== COLOR CORRECTION =====
@@ -151,7 +151,7 @@ end
 local lastLookVector = camera.CFrame.LookVector
 local blurDecaySpeed = 2   -- qué tan rápido se desvanece el blur
 local blurIncreaseSpeed = 8 -- qué tan rápido aparece
-local blurThreshold = 0.34   -- 🔥 sensibilidad MUY alta (debe ser un giro rapidísimo para activar)
+local blurThreshold = 0.22   -- 🔥 sensibilidad MUY alta (debe ser un giro rapidísimo para activar)
 
 RunService.RenderStepped:Connect(function(dt)
 	local currentLookVector = camera.CFrame.LookVector
