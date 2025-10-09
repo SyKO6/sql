@@ -110,8 +110,41 @@ local function createESP(target)
 	nameLabel.TextScaled = true
 	nameLabel.Parent = billboard
 
+	-- 🧠 Tracker 3D del torso
+	local torso = target.Character:FindFirstChild("HumanoidRootPart") or target.Character:FindFirstChild("UpperTorso") or target.Character:FindFirstChild("Torso")
+	local trackerGui, trackerFrame, uiStroke = nil, nil, nil
+
+	if torso then
+		trackerGui = Instance.new("BillboardGui")
+		trackerGui.Name = "TorsoTracker"
+		trackerGui.Size = UDim2.new(0, 80, 0, 80)
+		trackerGui.Adornee = torso
+		trackerGui.AlwaysOnTop = true
+		trackerGui.LightInfluence = 0
+		trackerGui.Active = false -- ❗ evita capturar clics
+		trackerGui.Parent = target.Character
+
+		trackerFrame = Instance.new("Frame")
+		trackerFrame.Size = UDim2.new(1, 0, 1, 0)
+		trackerFrame.BackgroundTransparency = 0.75
+		trackerFrame.BorderSizePixel = 0
+		trackerFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+		trackerFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+		trackerFrame.Parent = trackerGui
+
+		local uiCorner = Instance.new("UICorner")
+		uiCorner.CornerRadius = UDim.new(1, 0)
+		uiCorner.Parent = trackerFrame
+
+		uiStroke = Instance.new("UIStroke")
+		uiStroke.Thickness = 2
+		uiStroke.Transparency = 0
+		uiStroke.Parent = trackerFrame
+	end
+
 	RunService.RenderStepped:Connect(function()
 		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then return end
+
 		local dist = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
 
 		local tempStats = target:FindFirstChild("TempPlayerStatsModule")
@@ -125,23 +158,11 @@ local function createESP(target)
 		local crawlingValue = (crawling and crawling.Value)
 		local currentAnimValue = (currentAnim and currentAnim.Value) or ""
 
-		-- Color base
-		local color = Color3.fromRGB(255, 255, 255) -- Human
-		if beastValue then
-			color = Color3.fromRGB(255, 0, 0) -- Beast
-		end
+		local color = Color3.fromRGB(255, 255, 255)
+		if beastValue then color = Color3.fromRGB(255, 0, 0) end
+		if capturedValue then color = Color3.fromRGB(150, 220, 255) end
+		if currentAnimValue == "Typing" then color = Color3.fromRGB(0, 255, 0) end
 
-		-- Si el jugador está capturado
-		if capturedValue then
-			color = Color3.fromRGB(150, 220, 255) -- Azul hielo
-		end
-
-		-- Si la animación actual es "Typing"
-		if currentAnimValue == "Typing" then
-			color = Color3.fromRGB(0, 255, 0) -- Verde lima
-		end
-
-		-- Si está dentro del rango de peligro de la bestia (<30 studs)
 		local beast = nil
 		for _, plr in pairs(Players:GetPlayers()) do
 			local ts = plr:FindFirstChild("TempPlayerStatsModule")
@@ -153,26 +174,32 @@ local function createESP(target)
 		if beast and beast.Character and beast.Character:FindFirstChild("HumanoidRootPart") then
 			local beastDist = (beast.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
 			if beastDist < 30 and not beastValue then
-				color = Color3.fromRGB(255, 180, 50) -- Naranja-amarillo
+				color = Color3.fromRGB(255, 180, 50)
 			end
 		end
 
-		-- Si está agachado (IsCrawling), baja 30% el brillo del color actual
 		if crawlingValue then
-			local r,g,b = color.R * 255, color.G * 255, color.B * 255
+			local r, g, b = color.R * 255, color.G * 255, color.B * 255
 			color = Color3.fromRGB(r * 0.7, g * 0.7, b * 0.7)
 		end
 
 		highlight.OutlineColor = color
 		nameLabel.TextColor3 = color
-		nameLabel.Text = string.format("%s [%s (%.0f%%)] - %.1f", 
-			target.Name, 
-			beastValue and "Beast" or "Human", 
-			(target:FindFirstChild("SavedPlayerStatsModule") 
-				and target.SavedPlayerStatsModule:FindFirstChild("BeastChance") 
-				and target.SavedPlayerStatsModule.BeastChance.Value) or 0, 
+		nameLabel.Text = string.format("%s [%s (%.0f%%)] - %.1f",
+			target.Name,
+			beastValue and "Beast" or "Human",
+			(target:FindFirstChild("SavedPlayerStatsModule")
+				and target.SavedPlayerStatsModule:FindFirstChild("BeastChance")
+				and target.SavedPlayerStatsModule.BeastChance.Value) or 0,
 			dist
 		)
+
+		-- 🔵 Actualizar color del tracker
+		if trackerFrame and uiStroke then
+			trackerFrame.BackgroundColor3 = color
+			uiStroke.Color = darkenColor(color, 0.3)
+			trackerGui.Active = false -- nunca captura clicks
+		end
 	end)
 end
 
