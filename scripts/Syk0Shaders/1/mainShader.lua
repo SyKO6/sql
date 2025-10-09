@@ -197,7 +197,7 @@ end)
 local function applyRTXReflectance(part)
 	if part:IsA("BasePart") then
 		if part.Reflectance < 0.2 then
-			part.Reflectance = 0.2
+			part.Reflectance = 0.3
 		end
 		part.CastShadow = true
 	end
@@ -218,23 +218,5 @@ local function setupGodRays()
 end
 
 setupGodRays()
-
-RunService.RenderStepped:Connect(function()
-	if not camera then return end
-	local cameraDistance = (camera.CFrame.Position - character.Head.Position).Magnitude
-	local lookVector = camera.CFrame.LookVector
-	local sunDirection = (Vector3.new(0,1,0) - camera.CFrame.Position).Unit
-
-	local angle = lookVector:Dot(sunDirection)
-	if cameraDistance > 2 and angle > 0.85 then
-		sunRays.Intensity = 2.0
-		atmosphere.Glare = 0.7
-		atmosphere.Haze = 0.4
-	else
-		sunRays.Intensity = 0.2
-		atmosphere.Glare = 0.1
-		atmosphere.Haze = 0.1
-	end
-end)
 
 print("🌇 RTX + God Rays + Iluminación realista aplicada correctamente.")
