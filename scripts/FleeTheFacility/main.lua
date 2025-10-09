@@ -4,6 +4,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
+
 local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
 
@@ -18,28 +19,30 @@ player.CameraMode = Enum.CameraMode.Classic
 player.DevCameraOcclusionMode = Enum.DevCameraOcclusionMode.Invisicam
 player.CameraMaxZoomDistance = 1000
 
---// Iluminación clara (sin tinte verde)
-if Lighting:FindFirstChildOfClass("Atmosphere") then
-	Lighting.Atmosphere.Density = 0
-end
+--// Corrección de iluminación (visión clara, sin tinte verde)
 Lighting.GlobalShadows = false
+Lighting.Atmosphere.Density = 0
 Lighting.Brightness = 3
 Lighting.FogEnd = 100000
 Lighting.ExposureCompensation = 0.5
 
 task.spawn(function()
-	while task.wait(1) do
-		if Lighting.GlobalShadows then Lighting.GlobalShadows = false end
-		if Lighting:FindFirstChildOfClass("Atmosphere") and Lighting.Atmosphere.Density ~= 0 then
+	while true do
+		task.wait(1)
+		if Lighting.GlobalShadows then
+			Lighting.GlobalShadows = false
+		end
+		if Lighting.Atmosphere and Lighting.Atmosphere.Density ~= 0 then
 			Lighting.Atmosphere.Density = 0
 		end
 	end
 end)
 
---// Velocidad dinámica
+--// Sistema de velocidad dinámica
 local function enforceWalkSpeed()
 	local character = player.Character or player.CharacterAdded:Wait()
 	local humanoid = character:WaitForChild("Humanoid")
+
 	local tempStats = player:FindFirstChild("TempPlayerStatsModule")
 	if not tempStats then return end
 
@@ -48,32 +51,42 @@ local function enforceWalkSpeed()
 
 	RunService.Heartbeat:Connect(function()
 		if humanoid and isCrawling and isBeast then
-			if not isBeast.Value then
-				humanoid.WalkSpeed = isCrawling.Value and crawlSpeed or normalSpeed
+			local crawling = isCrawling.Value
+			local beast = isBeast.Value
+
+			if not beast then
+				if crawling then
+					if humanoid.WalkSpeed ~= crawlSpeed then
+						humanoid.WalkSpeed = crawlSpeed
+					end
+				else
+					if humanoid.WalkSpeed ~= normalSpeed then
+						humanoid.WalkSpeed = normalSpeed
+					end
+				end
 			end
 		end
 	end)
 end
 
-if player.Character then enforceWalkSpeed() end
+if player.Character then
+	enforceWalkSpeed()
+end
 player.CharacterAdded:Connect(enforceWalkSpeed)
 
---// Crear ESP + Tracker
-local function createESPandTracker(target)
+--// Función para oscurecer color un % dado
+local function darkenColor(color, percent)
+	return Color3.new(
+		color.R * (1 - percent),
+		color.G * (1 - percent),
+		color.B * (1 - percent)
+	)
+end
+
+--// ESP avanzado
+local function createESP(target)
 	if target == player then return end
 
-	local function cleanup()
-		if target.Character then
-			for _, v in pairs(target.Character:GetChildren()) do
-				if v.Name == "ESPHighlight" or v.Name == "NameTag" or v.Name == "TrackerBeam" then
-					v:Destroy()
-				end
-			end
-		end
-	end
-	cleanup()
-
-	-- Highlight
 	local highlight = Instance.new("Highlight")
 	highlight.Name = "ESPHighlight"
 	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
@@ -81,10 +94,9 @@ local function createESPandTracker(target)
 	highlight.OutlineTransparency = 0
 	highlight.Parent = target.Character
 
-	-- Nametag
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "NameTag"
-	billboard.Size = UDim2.new(0, 230, 0, 16)
+	billboard.Size = UDim2.new(0, 220, 0, 18)
 	billboard.AlwaysOnTop = true
 	billboard.Adornee = target.Character:WaitForChild("Head")
 	billboard.Parent = target.Character
@@ -98,85 +110,81 @@ local function createESPandTracker(target)
 	nameLabel.TextScaled = true
 	nameLabel.Parent = billboard
 
-	-- Tracker 3D (línea estática y brillante)
-	local beam = Instance.new("Beam")
-	beam.Name = "TrackerBeam"
-	beam.FaceCamera = true
-	beam.LightInfluence = 0
-	beam.Width0 = 0.08
-	beam.Width1 = 0.08
-	beam.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 0.05),
-		NumberSequenceKeypoint.new(0.5, 0.15),
-		NumberSequenceKeypoint.new(1, 0.05)
-	})
-	beam.ZOffset = 1
-	beam.Segments = 20
-	beam.Parent = target.Character
-
-	local attachA = Instance.new("Attachment", player.Character:WaitForChild("HumanoidRootPart"))
-	local attachB = Instance.new("Attachment", target.Character:WaitForChild("HumanoidRootPart"))
-	beam.Attachment0 = attachA
-	beam.Attachment1 = attachB
-
-	-- Textura simulando neón
-	beam.Texture = "rbxassetid://11368370609" -- textura de brillo tipo neón
-	beam.TextureMode = Enum.TextureMode.Stretch
-	beam.TextureLength = 4
-	beam.TextureSpeed = 0
-	beam.LightEmission = 1
-
-	-- Actualización dinámica
 	RunService.RenderStepped:Connect(function()
-		if not (target.Character and player.Character) then return end
-		local hrp1 = player.Character:FindFirstChild("HumanoidRootPart")
-		local hrp2 = target.Character:FindFirstChild("HumanoidRootPart")
-		if not (hrp1 and hrp2) then return end
-
-		local dist = (hrp1.Position - hrp2.Position).Magnitude
+		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then return end
+		local dist = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
 
 		local tempStats = target:FindFirstChild("TempPlayerStatsModule")
-		local savedStats = target:FindFirstChild("SavedPlayerStatsModule")
-		local beast = tempStats and tempStats:FindFirstChild("IsBeast") and tempStats.IsBeast.Value
-		local captured = tempStats and tempStats:FindFirstChild("Captured") and tempStats.Captured.Value
-		local crawling = tempStats and tempStats:FindFirstChild("IsCrawling") and tempStats.IsCrawling.Value
-		local chance = tempStats and tempStats:FindFirstChild("BeastChance") and math.floor(savedStats.BeastChance.Value * 100) or 0
-		local currentAnim = tempStats and tempStats:FindFirstChild("CurrentAnimation") and tempStats.CurrentAnimation.Value or ""
+		local isBeast = tempStats and tempStats:FindFirstChild("IsBeast")
+		local captured = tempStats and tempStats:FindFirstChild("Captured")
+		local crawling = tempStats and tempStats:FindFirstChild("IsCrawling")
+		local currentAnim = tempStats and tempStats:FindFirstChild("CurrentAnimation")
 
-		local color = Color3.fromRGB(255, 255, 255)
-		if beast then
-			color = Color3.fromRGB(255, 0, 0)
-		elseif captured then
-			color = Color3.fromRGB(150, 220, 255)
-		elseif currentAnim == "Typing" then
-			color = Color3.fromRGB(0, 255, 0)
+		local beastValue = (isBeast and isBeast.Value)
+		local capturedValue = (captured and captured.Value)
+		local crawlingValue = (crawling and crawling.Value)
+		local currentAnimValue = (currentAnim and currentAnim.Value) or ""
+
+		-- Color base
+		local color = Color3.fromRGB(255, 255, 255) -- Human
+		if beastValue then
+			color = Color3.fromRGB(255, 0, 0) -- Beast
 		end
-		if crawling then
-			color = Color3.new(color.R * 0.7, color.G * 0.7, color.B * 0.7)
+
+		-- Si el jugador está capturado
+		if capturedValue then
+			color = Color3.fromRGB(150, 220, 255) -- Azul hielo
+		end
+
+		-- Si la animación actual es "Typing"
+		if currentAnimValue == "Typing" then
+			color = Color3.fromRGB(0, 255, 0) -- Verde lima
+		end
+
+		-- Si está dentro del rango de peligro de la bestia (<30 studs)
+		local beast = nil
+		for _, plr in pairs(Players:GetPlayers()) do
+			local ts = plr:FindFirstChild("TempPlayerStatsModule")
+			if ts and ts:FindFirstChild("IsBeast") and ts.IsBeast.Value then
+				beast = plr
+				break
+			end
+		end
+		if beast and beast.Character and beast.Character:FindFirstChild("HumanoidRootPart") then
+			local beastDist = (beast.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
+			if beastDist < 30 and not beastValue then
+				color = Color3.fromRGB(255, 180, 50) -- Naranja-amarillo
+			end
+		end
+
+		-- Si está agachado (IsCrawling), baja 30% el brillo del color actual
+		if crawlingValue then
+			local r,g,b = color.R * 255, color.G * 255, color.B * 255
+			color = Color3.fromRGB(r * 0.7, g * 0.7, b * 0.7)
 		end
 
 		highlight.OutlineColor = color
 		nameLabel.TextColor3 = color
-		beam.Color = ColorSequence.new{
-			ColorSequenceKeypoint.new(0, color),
-			ColorSequenceKeypoint.new(0.5, Color3.new(1,1,1)),
-			ColorSequenceKeypoint.new(1, color)
-		}
-
-		-- texto con % de bestia
-		nameLabel.Text = string.format("%s [%s (%.0f%%)] - %.1f", target.Name, beast and "Beast" or "Human", chance, dist)
+		nameLabel.Text = string.format("%s [%s (%.0f%%)] - %.1f", 
+			target.Name, 
+			beastValue and "Beast" or "Human", 
+			(target:FindFirstChild("SavedPlayerStatsModule") 
+				and target.SavedPlayerStatsModule:FindFirstChild("BeastChance") 
+				and target.SavedPlayerStatsModule.BeastChance.Value) or 0, 
+			dist
+		)
 	end)
 end
 
---// Aplicar ESP y Tracker a todos
+--// Aplicar ESP a todos los jugadores
 for _, plr in pairs(Players:GetPlayers()) do
 	if plr ~= player then
 		plr.CharacterAdded:Connect(function()
 			task.wait(1)
-			createESPandTracker(plr)
+			createESP(plr)
 		end)
 		if plr.Character then
-			createESPandTracker(plr)
+			createESP(plr)
 		end
 	end
 end
@@ -184,6 +192,6 @@ end
 Players.PlayerAdded:Connect(function(plr)
 	plr.CharacterAdded:Connect(function()
 		task.wait(1)
-		createESPandTracker(plr)
+		createESP(plr)
 	end)
 end)
