@@ -84,6 +84,21 @@ sunRays.Intensity = 1.0
 sunRays.Spread = 1.0
 sunRays.Parent = Lighting
 
+local directionalLight = Instance.new("DirectionalLight")
+directionalLight.Name = "RealisticSunLight"
+directionalLight.Color = Color3.fromRGB(255, 244, 214)
+directionalLight.Brightness = 2
+directionalLight.Shadows = true
+directionalLight.Parent = Lighting
+
+-- Dirección del sol
+directionalLight.CFrame = CFrame.new(Vector3.new(0,0,0), Vector3.new(-1, -1, -1))
+
+-- Parámetros extra para sombras más suaves y realistas
+directionalLight.ShadowSoftness = 0.6   -- suaviza bordes de sombras
+directionalLight.ShadowBias = 0.05      -- reduce artefactos de sombras
+directionalLight.ShadowResolution = Enum.ShadowResolution.Medium
+
 -- ===== DEPTH OF FIELD =====
 local dof = Instance.new("DepthOfFieldEffect")
 dof.Name = "RealisticDepthOfField"
