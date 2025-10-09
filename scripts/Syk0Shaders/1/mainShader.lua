@@ -2,6 +2,9 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/
 
 -- 🌅 ILUMINACIÓN REALISTA + EFECTOS VISUALES + BLUR DINÁMICO
 
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
 -- ===== SERVICIOS =====
 local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
@@ -80,14 +83,6 @@ sunRays.Name = "RealisticSunRays"
 sunRays.Intensity = 1.0
 sunRays.Spread = 1.0
 sunRays.Parent = Lighting
-
-local sunLight = Instance.new("DirectionalLight")
-sunLight.Brightness = 5
-sunLight.Color = Color3.fromRGB(255, 240, 200)
-sunLight.Shadows = true
-sunLight.ShadowSoftness = 1.0
-sunLight.Orientation = Vector3.new(45, 45, 0)
-sunLight.Parent = Lighting
 
 -- ===== DEPTH OF FIELD =====
 local dof = Instance.new("DepthOfFieldEffect")
