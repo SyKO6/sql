@@ -84,7 +84,7 @@ local function createESPandTracker(target)
 	-- Nametag
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "NameTag"
-	billboard.Size = UDim2.new(0, 220, 0, 18)
+	billboard.Size = UDim2.new(0, 230, 0, 16)
 	billboard.AlwaysOnTop = true
 	billboard.Adornee = target.Character:WaitForChild("Head")
 	billboard.Parent = target.Character
@@ -103,8 +103,8 @@ local function createESPandTracker(target)
 	beam.Name = "TrackerBeam"
 	beam.FaceCamera = true
 	beam.LightInfluence = 0
-	beam.Width0 = 0.1
-	beam.Width1 = 0.1
+	beam.Width0 = 0.05
+	beam.Width1 = 0.05
 	beam.Transparency = NumberSequence.new(0.2)
 	beam.Parent = target.Character
 
@@ -112,8 +112,6 @@ local function createESPandTracker(target)
 	local attachB = Instance.new("Attachment", target.Character:WaitForChild("HumanoidRootPart"))
 	beam.Attachment0 = attachA
 	beam.Attachment1 = attachB
-
-	-- Sin textura (estático)
 	beam.Texture = ""
 	beam.TextureSpeed = 0
 
@@ -132,9 +130,10 @@ local function createESPandTracker(target)
 		local beast = tempStats and tempStats:FindFirstChild("IsBeast") and tempStats.IsBeast.Value
 		local captured = tempStats and tempStats:FindFirstChild("Captured") and tempStats.Captured.Value
 		local crawling = tempStats and tempStats:FindFirstChild("IsCrawling") and tempStats.IsCrawling.Value
+		local chance = tempStats and tempStats:FindFirstChild("BeastChance") and math.floor(tempStats.BeastChance.Value * 100) or 0
 		local currentAnim = tempStats and tempStats:FindFirstChild("CurrentAnimation") and tempStats.CurrentAnimation.Value or ""
 
-		-- Color
+		-- Color dinámico
 		local color = Color3.fromRGB(255, 255, 255)
 		if beast then
 			color = Color3.fromRGB(255, 0, 0)
@@ -151,7 +150,8 @@ local function createESPandTracker(target)
 		nameLabel.TextColor3 = color
 		beam.Color = ColorSequence.new(color)
 
-		nameLabel.Text = string.format("%s [%s] - %.1f", target.Name, beast and "Beast" or "Human", dist)
+		-- Texto con % de bestia
+		nameLabel.Text = string.format("%s [%s (%.0f%%)] - %.1f", target.Name, beast and "Beast" or "Human", chance, dist)
 	end)
 end
 
