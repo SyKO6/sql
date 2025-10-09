@@ -110,42 +110,34 @@ local function createESP(target)
 	nameLabel.TextScaled = true
 	nameLabel.Parent = billboard
 
-	-- 🧠 Tracker 3D del torso
-	local torso = target.Character:FindFirstChild("HumanoidRootPart") or target.Character:FindFirstChild("UpperTorso") or target.Character:FindFirstChild("Torso")
-	local trackerGui, trackerFrame, uiStroke = nil, nil, nil
+	-- 🧠 Tracker 3D (línea entre torsos)
+	local playerTorso = player.Character:WaitForChild("HumanoidRootPart")
+	local targetTorso = target.Character:WaitForChild("HumanoidRootPart")
 
-	if torso then
-		trackerGui = Instance.new("BillboardGui")
-		trackerGui.Name = "TorsoTracker"
-		trackerGui.Size = UDim2.new(0, 80, 0, 80)
-		trackerGui.Adornee = torso
-		trackerGui.AlwaysOnTop = true
-		trackerGui.LightInfluence = 0
-		trackerGui.Active = false -- ❗ evita capturar clics
-		trackerGui.Parent = target.Character
+	local trackerPart = Instance.new("Part")
+	trackerPart.Name = "TorsoTrackerLine"
+	trackerPart.Anchored = true
+	trackerPart.CanCollide = false
+	trackerPart.CanTouch = false
+	trackerPart.CanQuery = false
+	trackerPart.Material = Enum.Material.Neon
+	trackerPart.Transparency = 0.35
+	trackerPart.Size = Vector3.new(0.15, 0.15, 0.15)
+	trackerPart.Color = Color3.fromRGB(255, 255, 255)
+	trackerPart.Parent = workspace
+	trackerPart.Locked = true
 
-		trackerFrame = Instance.new("Frame")
-		trackerFrame.Size = UDim2.new(1, 0, 1, 0)
-		trackerFrame.BackgroundTransparency = 0.75
-		trackerFrame.BorderSizePixel = 0
-		trackerFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-		trackerFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-		trackerFrame.Parent = trackerGui
-
-		local uiCorner = Instance.new("UICorner")
-		uiCorner.CornerRadius = UDim.new(1, 0)
-		uiCorner.Parent = trackerFrame
-
-		uiStroke = Instance.new("UIStroke")
-		uiStroke.Thickness = 2
-		uiStroke.Transparency = 0
-		uiStroke.Parent = trackerFrame
-	end
+	-- Sin ningún input (para evitar bug del doble click)
+	trackerPart.CastShadow = false
+	trackerPart:SetAttribute("NonInteractive", true)
 
 	RunService.RenderStepped:Connect(function()
-		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then return end
+		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then
+			if trackerPart then trackerPart.Transparency = 1 end
+			return
+		end
 
-		local dist = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
+		local dist = (playerTorso.Position - targetTorso.Position).Magnitude
 
 		local tempStats = target:FindFirstChild("TempPlayerStatsModule")
 		local isBeast = tempStats and tempStats:FindFirstChild("IsBeast")
@@ -172,15 +164,15 @@ local function createESP(target)
 			end
 		end
 		if beast and beast.Character and beast.Character:FindFirstChild("HumanoidRootPart") then
-			local beastDist = (beast.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
+			local beastDist = (beast.Character.HumanoidRootPart.Position - targetTorso.Position).Magnitude
 			if beastDist < 30 and not beastValue then
 				color = Color3.fromRGB(255, 180, 50)
 			end
 		end
 
 		if crawlingValue then
-			local r, g, b = color.R * 255, color.G * 255, color.B * 255
-			color = Color3.fromRGB(r * 0.7, g * 0.7, b * 0.7)
+			local r,g,b = color.R*255, color.G*255, color.B*255
+			color = Color3.fromRGB(r*0.7, g*0.7, b*0.7)
 		end
 
 		highlight.OutlineColor = color
@@ -194,12 +186,15 @@ local function createESP(target)
 			dist
 		)
 
-		-- 🔵 Actualizar color del tracker
-		if trackerFrame and uiStroke then
-			trackerFrame.BackgroundColor3 = color
-			uiStroke.Color = darkenColor(color, 0.3)
-			trackerGui.Active = false -- nunca captura clicks
-		end
+		-- 🧩 Actualizar tracker visualmente (posición, tamaño, orientación)
+		local midpoint = (playerTorso.Position + targetTorso.Position) / 2
+		local direction = (targetTorso.Position - playerTorso.Position)
+		local distance = direction.Magnitude
+
+		trackerPart.Size = Vector3.new(0.15, 0.15, distance)
+		trackerPart.CFrame = CFrame.lookAt(midpoint, targetTorso.Position)
+		trackerPart.Color = color
+		trackerPart.Transparency = 0.35
 	end)
 end
 
