@@ -98,22 +98,33 @@ local function createESPandTracker(target)
 	nameLabel.TextScaled = true
 	nameLabel.Parent = billboard
 
-	-- Tracker 3D (línea estática)
+	-- Tracker 3D (línea estática y brillante)
 	local beam = Instance.new("Beam")
 	beam.Name = "TrackerBeam"
 	beam.FaceCamera = true
 	beam.LightInfluence = 0
-	beam.Width0 = 0.05
-	beam.Width1 = 0.05
-	beam.Transparency = NumberSequence.new(0.2)
+	beam.Width0 = 0.08
+	beam.Width1 = 0.08
+	beam.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.05),
+		NumberSequenceKeypoint.new(0.5, 0.15),
+		NumberSequenceKeypoint.new(1, 0.05)
+	})
+	beam.ZOffset = 1
+	beam.Segments = 20
 	beam.Parent = target.Character
 
 	local attachA = Instance.new("Attachment", player.Character:WaitForChild("HumanoidRootPart"))
 	local attachB = Instance.new("Attachment", target.Character:WaitForChild("HumanoidRootPart"))
 	beam.Attachment0 = attachA
 	beam.Attachment1 = attachB
-	beam.Texture = ""
+
+	-- Textura simulando neón
+	beam.Texture = "rbxassetid://11368370609" -- textura de brillo tipo neón
+	beam.TextureMode = Enum.TextureMode.Stretch
+	beam.TextureLength = 4
 	beam.TextureSpeed = 0
+	beam.LightEmission = 1
 
 	-- Actualización dinámica
 	RunService.RenderStepped:Connect(function()
@@ -122,10 +133,8 @@ local function createESPandTracker(target)
 		local hrp2 = target.Character:FindFirstChild("HumanoidRootPart")
 		if not (hrp1 and hrp2) then return end
 
-		-- Distancia
 		local dist = (hrp1.Position - hrp2.Position).Magnitude
 
-		-- Estado del jugador
 		local tempStats = target:FindFirstChild("TempPlayerStatsModule")
 		local savedStats = target:FindFirstChild("SavedPlayerStatsModule")
 		local beast = tempStats and tempStats:FindFirstChild("IsBeast") and tempStats.IsBeast.Value
@@ -134,7 +143,6 @@ local function createESPandTracker(target)
 		local chance = tempStats and tempStats:FindFirstChild("BeastChance") and math.floor(savedStats.BeastChance.Value * 100) or 0
 		local currentAnim = tempStats and tempStats:FindFirstChild("CurrentAnimation") and tempStats.CurrentAnimation.Value or ""
 
-		-- Color dinámico
 		local color = Color3.fromRGB(255, 255, 255)
 		if beast then
 			color = Color3.fromRGB(255, 0, 0)
@@ -149,9 +157,13 @@ local function createESPandTracker(target)
 
 		highlight.OutlineColor = color
 		nameLabel.TextColor3 = color
-		beam.Color = ColorSequence.new(color)
+		beam.Color = ColorSequence.new{
+			ColorSequenceKeypoint.new(0, color),
+			ColorSequenceKeypoint.new(0.5, Color3.new(1,1,1)),
+			ColorSequenceKeypoint.new(1, color)
+		}
 
-		-- Texto con % de bestia
+		-- texto con % de bestia
 		nameLabel.Text = string.format("%s [%s (%.0f%%)] - %.1f", target.Name, beast and "Beast" or "Human", chance, dist)
 	end)
 end
