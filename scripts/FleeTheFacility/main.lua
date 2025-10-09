@@ -110,7 +110,7 @@ local function createESP(target)
 	nameLabel.TextScaled = true
 	nameLabel.Parent = billboard
 
-	-- 🧠 Tracker 3D (línea entre torsos)
+	-- 🧠 Tracker 3D entre torsos
 	local playerTorso = player.Character:WaitForChild("HumanoidRootPart")
 	local targetTorso = target.Character:WaitForChild("HumanoidRootPart")
 
@@ -125,11 +125,13 @@ local function createESP(target)
 	trackerPart.Size = Vector3.new(0.15, 0.15, 0.15)
 	trackerPart.Color = Color3.fromRGB(255, 255, 255)
 	trackerPart.Parent = workspace
-	trackerPart.Locked = true
-
-	-- Sin ningún input (para evitar bug del doble click)
 	trackerPart.CastShadow = false
+	trackerPart.Locked = true
 	trackerPart:SetAttribute("NonInteractive", true)
+
+	-- ❗ Permitir ver a través de paredes (No se corta)
+	trackerPart.LocalTransparencyModifier = 0
+	trackerPart.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 
 	RunService.RenderStepped:Connect(function()
 		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then
@@ -144,17 +146,37 @@ local function createESP(target)
 		local captured = tempStats and tempStats:FindFirstChild("Captured")
 		local crawling = tempStats and tempStats:FindFirstChild("IsCrawling")
 		local currentAnim = tempStats and tempStats:FindFirstChild("CurrentAnimation")
+		local ragdoll = tempStats and tempStats:FindFirstChild("Ragdoll")
 
 		local beastValue = (isBeast and isBeast.Value)
 		local capturedValue = (captured and captured.Value)
 		local crawlingValue = (crawling and crawling.Value)
 		local currentAnimValue = (currentAnim and currentAnim.Value) or ""
+		local ragdollValue = (ragdoll and ragdoll.Value)
 
+		-- 🟩 Sistema de color por prioridad
 		local color = Color3.fromRGB(255, 255, 255)
-		if beastValue then color = Color3.fromRGB(255, 0, 0) end
-		if capturedValue then color = Color3.fromRGB(150, 220, 255) end
-		if currentAnimValue == "Typing" then color = Color3.fromRGB(0, 255, 0) end
+		local priority = 1
 
+		-- Verde (Typing) prioridad 2
+		if currentAnimValue == "Typing" and priority < 2 then
+			color = Color3.fromRGB(0, 255, 0)
+			priority = 2
+		end
+
+		-- Azul (capturado) prioridad 3
+		if capturedValue and priority < 3 then
+			color = Color3.fromRGB(150, 220, 255)
+			priority = 3
+		end
+
+		-- Morado (ragdoll) prioridad 4
+		if ragdollValue and priority < 4 then
+			color = Color3.fromRGB(180, 0, 255)
+			priority = 4
+		end
+
+		-- Naranja (beast cerca) prioridad 5
 		local beast = nil
 		for _, plr in pairs(Players:GetPlayers()) do
 			local ts = plr:FindFirstChild("TempPlayerStatsModule")
@@ -163,18 +185,35 @@ local function createESP(target)
 				break
 			end
 		end
+		local beastDist = math.huge
 		if beast and beast.Character and beast.Character:FindFirstChild("HumanoidRootPart") then
-			local beastDist = (beast.Character.HumanoidRootPart.Position - targetTorso.Position).Magnitude
-			if beastDist < 30 and not beastValue then
+			beastDist = (beast.Character.HumanoidRootPart.Position - targetTorso.Position).Magnitude
+			if beastDist < 30 and not beastValue and priority < 5 then
 				color = Color3.fromRGB(255, 180, 50)
+				priority = 5
 			end
 		end
 
-		if crawlingValue then
-			local r,g,b = color.R*255, color.G*255, color.B*255
-			color = Color3.fromRGB(r*0.7, g*0.7, b*0.7)
+		-- 🔮 Si está en ragdoll y cerca de la bestia → púrpura claro
+		if ragdollValue and beastDist < 30 then
+			color = Color3.fromRGB(200, 120, 255)
+			priority = 6
 		end
 
+		-- Rojo (es bestia) prioridad 10
+		if beastValue and priority < 10 then
+			color = Color3.fromRGB(255, 0, 0)
+			priority = 10
+		end
+
+		-- Opaco por IsCrawling (máxima prioridad)
+		if crawlingValue then
+			local r, g, b = color.R * 255, color.G * 255, color.B * 255
+			color = Color3.fromRGB(r * 0.7, g * 0.7, b * 0.7)
+			priority = 999
+		end
+
+		-- Aplicar colores actualizados
 		highlight.OutlineColor = color
 		nameLabel.TextColor3 = color
 		nameLabel.Text = string.format("%s [%s (%.0f%%)] - %.1f",
@@ -186,12 +225,12 @@ local function createESP(target)
 			dist
 		)
 
-		-- 🧩 Actualizar tracker visualmente (posición, tamaño, orientación)
+		-- 🟪 Tracker 3D visual
 		local midpoint = (playerTorso.Position + targetTorso.Position) / 2
 		local direction = (targetTorso.Position - playerTorso.Position)
 		local distance = direction.Magnitude
 
-		trackerPart.Size = Vector3.new(0.03, 0.03, distance)
+		trackerPart.Size = Vector3.new(0.15, 0.15, distance)
 		trackerPart.CFrame = CFrame.lookAt(midpoint, targetTorso.Position)
 		trackerPart.Color = color
 		trackerPart.Transparency = 0.35
