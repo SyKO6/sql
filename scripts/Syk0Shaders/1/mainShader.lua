@@ -43,12 +43,12 @@ blur.Parent = Lighting
 -- ===== ATMOSPHERE =====
 local atmosphere = Instance.new("Atmosphere")
 atmosphere.Name = "RealisticAtmosphere"
-atmosphere.Density = 0.7
+atmosphere.Density = 0.5
 atmosphere.Offset = 0.0
 atmosphere.Color = Color3.fromRGB(255, 255, 255)
 atmosphere.Decay = Color3.fromRGB(200, 200, 200)
-atmosphere.Glare = 0.1
-atmosphere.Haze = 0.1
+atmosphere.Glare = 0.0
+atmosphere.Haze = 0.0
 atmosphere.Parent = Lighting
 
 -- ===== COLOR CORRECTION =====
