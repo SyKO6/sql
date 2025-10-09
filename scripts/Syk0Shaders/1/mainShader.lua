@@ -1,6 +1,6 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/intro.lua"))()
 
--- 🌅 ILUMINACIÓN REALISTA + EFECTOS VISUALES + BLUR DINÁMICO + RTX
+-- 🌅 ILUMINACIÓN REALISTA + EFECTOS VISUALES + BLUR DINÁMICO + RTX + GOD RAYS
 
 -- ===== SERVICIOS =====
 local Lighting = game:GetService("Lighting")
@@ -46,9 +46,9 @@ atmosphere.Name = "RealisticAtmosphere"
 atmosphere.Density = 0.7
 atmosphere.Offset = 0.0
 atmosphere.Color = Color3.fromRGB(255, 255, 255)
-atmosphere.Decay = Color3.fromRGB(185, 185, 185)
-atmosphere.Glare = 0.5
-atmosphere.Haze = 0.3
+atmosphere.Decay = Color3.fromRGB(200, 200, 200)
+atmosphere.Glare = 0.1
+atmosphere.Haze = 0.1
 atmosphere.Parent = Lighting
 
 -- ===== COLOR CORRECTION =====
@@ -78,8 +78,8 @@ bloom2.Parent = Lighting
 -- ===== SUNRAYS =====
 local sunRays = Instance.new("SunRaysEffect")
 sunRays.Name = "RealisticSunRays"
-sunRays.Intensity = 2.0
-sunRays.Spread = 1.5
+sunRays.Intensity = 0.2
+sunRays.Spread = 1.0
 sunRays.Parent = Lighting
 
 -- ===== DEPTH OF FIELD =====
@@ -193,21 +193,48 @@ task.spawn(function()
 	end
 end)
 
--- ===== REFLEJOS METÁLICOS Y SOMBRAS RTX =====
-local function applyRTXProperties(part)
+-- ===== REFLEJOS RTX REALISTAS =====
+local function applyRTXReflectance(part)
 	if part:IsA("BasePart") then
-		part.Reflectance = 0.5
+		if part.Reflectance < 0.2 then
+			part.Reflectance = 0.2
+		end
 		part.CastShadow = true
-		part.Material = Enum.Material.Metal
 	end
 end
 
 for _, obj in pairs(workspace:GetDescendants()) do
-	applyRTXProperties(obj)
+	applyRTXReflectance(obj)
 end
 
 workspace.DescendantAdded:Connect(function(obj)
-	applyRTXProperties(obj)
+	applyRTXReflectance(obj)
 end)
 
-print("🌇 RTX + Iluminación realista aplicada correctamente.")
+-- ===== GOD RAYS DINÁMICOS =====
+local function setupGodRays()
+	sunRays.Intensity = 0.2
+	sunRays.Spread = 1.0
+end
+
+setupGodRays()
+
+RunService.RenderStepped:Connect(function()
+	if not camera then return end
+	local cameraDistance = (camera.CFrame.Position - character.Head.Position).Magnitude
+	local lookVector = camera.CFrame.LookVector
+	local sunDirection = (Vector3.new(0,1,0) - camera.CFrame.Position).Unit
+
+	local angle = lookVector:Dot(sunDirection)
+	if cameraDistance > 2 and angle > 0.85 then
+		sunRays.Intensity = 2.0
+		atmosphere.Glare = 0.7
+		atmosphere.Haze = 0.4
+	else
+		sunRays.Intensity = 0.2
+		atmosphere.Glare = 0.1
+		atmosphere.Haze = 0.1
+	end
+end)
+
+print("🌇 RTX + God Rays + Iluminación realista aplicada correctamente.")
