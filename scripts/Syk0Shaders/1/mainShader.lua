@@ -205,7 +205,7 @@ local function applyMetalLikeReflect(part)
 		end
 		sa.Specular = Color3.fromRGB(255, 255, 255)
 		sa.Roughness = 0.2
-		sa.Metalness = 0.1
+		sa.Metalness = 0.8
 	end
 end
 
