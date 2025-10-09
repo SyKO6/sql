@@ -1,4 +1,3 @@
--- ===== INTRO SCRIPT AJUSTADO CON BLUR PROPIO =====
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
@@ -74,7 +73,6 @@ TweenService:Create(image, TweenInfo.new(1.5), {ImageTransparency = 1}):Play()
 TweenService:Create(label, TweenInfo.new(1.5), {TextTransparency = 1}):Play()
 wait(1.5)
 
--- Destruir intro inicial para evitar doble imagen
 introGui:Destroy()
 
 -- Texto final (centro pantalla)
@@ -115,7 +113,6 @@ spawn(function()
 	end
 end)
 
--- Esperar lectura
 wait(3)
 
 -- ===== FADE-OUT FINAL =====
