@@ -127,10 +127,11 @@ local function createESPandTracker(target)
 
 		-- Estado del jugador
 		local tempStats = target:FindFirstChild("TempPlayerStatsModule")
+		local savedStats = target:FindFirstChild("SavedPlayerStatsModule")
 		local beast = tempStats and tempStats:FindFirstChild("IsBeast") and tempStats.IsBeast.Value
 		local captured = tempStats and tempStats:FindFirstChild("Captured") and tempStats.Captured.Value
 		local crawling = tempStats and tempStats:FindFirstChild("IsCrawling") and tempStats.IsCrawling.Value
-		local chance = tempStats and tempStats:FindFirstChild("BeastChance") and math.floor(tempStats.BeastChance.Value * 100) or 0
+		local chance = tempStats and tempStats:FindFirstChild("BeastChance") and math.floor(savedStats.BeastChance.Value * 100) or 0
 		local currentAnim = tempStats and tempStats:FindFirstChild("CurrentAnimation") and tempStats.CurrentAnimation.Value or ""
 
 		-- Color dinámico
