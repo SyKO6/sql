@@ -36,17 +36,17 @@ atmosphere.Name = "RealisticAtmosphere"
 atmosphere.Density = 0.48
 atmosphere.Offset = 0.0
 atmosphere.Color = Color3.fromRGB(255, 255, 255)
-atmosphere.Decay = Color3.fromRGB(255, 255, 255)
-atmosphere.Glare = 0.34
-atmosphere.Haze = 1.02
+atmosphere.Decay = Color3.fromRGB(185, 185, 185)
+atmosphere.Glare = 0.8
+atmosphere.Haze = 2
 atmosphere.Parent = Lighting
 
 -- ===== COLOR CORRECTION =====
 local cc = Instance.new("ColorCorrectionEffect")
 cc.Name = "RealisticColorCorrection"
-cc.Brightness = -0.08
-cc.Contrast = 0.35
-cc.Saturation = 0.4
+cc.Brightness = -0.12
+cc.Contrast = 0.45
+cc.Saturation = 0.45
 cc.TintColor = Color3.fromRGB(242, 255, 255)
 cc.Parent = Lighting
 
@@ -58,12 +58,27 @@ bloom.Size = 2000
 bloom.Threshold = 1.0
 bloom.Parent = Lighting
 
+local bloom2 = Instance.new("BloomEffect")
+bloom.Name = "RealisticBloom2"
+bloom.Intensity = 0.2
+bloom.Size = 0.05
+bloom.Threshold = 5.0
+bloom.Parent = Lighting
+
 -- ===== SUNRAYS =====
 local sunRays = Instance.new("SunRaysEffect")
 sunRays.Name = "RealisticSunRays"
-sunRays.Intensity = 8.0
+sunRays.Intensity = 1.0
 sunRays.Spread = 8.0
 sunRays.Parent = Lighting
+
+local sunLight = Instance.new("DirectionalLight")
+sunLight.Brightness = 5
+sunLight.Color = Color3.fromRGB(255, 240, 200)
+sunLight.Shadows = true
+sunLight.ShadowSoftness = 1.0
+sunLight.Orientation = Vector3.new(45, 45, 0)
+sunLight.Parent = Lighting
 
 -- ===== DEPTH OF FIELD =====
 local dof = Instance.new("DepthOfFieldEffect")
