@@ -19,9 +19,11 @@ player.CameraMode = Enum.CameraMode.Classic
 player.DevCameraOcclusionMode = Enum.DevCameraOcclusionMode.Invisicam
 player.CameraMaxZoomDistance = 1000
 
---// Corrección de iluminación (visión clara, sin tinte verde)
+--// Corrección de iluminación
 Lighting.GlobalShadows = false
-Lighting.Atmosphere.Density = 0
+if Lighting:FindFirstChildOfClass("Atmosphere") then
+	Lighting:FindFirstChildOfClass("Atmosphere").Density = 0
+end
 Lighting.Brightness = 3
 Lighting.FogEnd = 100000
 Lighting.ExposureCompensation = 0.5
@@ -32,8 +34,9 @@ task.spawn(function()
 		if Lighting.GlobalShadows then
 			Lighting.GlobalShadows = false
 		end
-		if Lighting.Atmosphere and Lighting.Atmosphere.Density ~= 0 then
-			Lighting.Atmosphere.Density = 0
+		local atmos = Lighting:FindFirstChildOfClass("Atmosphere")
+		if atmos and atmos.Density ~= 0 then
+			atmos.Density = 0
 		end
 	end
 end)
@@ -55,15 +58,7 @@ local function enforceWalkSpeed()
 			local beast = isBeast.Value
 
 			if not beast then
-				if crawling then
-					if humanoid.WalkSpeed ~= crawlSpeed then
-						humanoid.WalkSpeed = crawlSpeed
-					end
-				else
-					if humanoid.WalkSpeed ~= normalSpeed then
-						humanoid.WalkSpeed = normalSpeed
-					end
-				end
+				humanoid.WalkSpeed = crawling and crawlSpeed or normalSpeed
 			end
 		end
 	end)
@@ -74,26 +69,21 @@ if player.Character then
 end
 player.CharacterAdded:Connect(enforceWalkSpeed)
 
---// Función para oscurecer color un % dado
-local function darkenColor(color, percent)
-	return Color3.new(
-		color.R * (1 - percent),
-		color.G * (1 - percent),
-		color.B * (1 - percent)
-	)
-end
-
---// ESP avanzado con Beam (tracker 3D dinámico y seguro)
+--// ESP AVANZADO
 local function createESP(target)
 	if target == player then return end
+	repeat task.wait() until target.Character and target.Character:FindFirstChild("HumanoidRootPart") and target.Character:FindFirstChild("Head")
 
+	-- Highlight
 	local highlight = Instance.new("Highlight")
 	highlight.Name = "ESPHighlight"
 	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 	highlight.FillTransparency = 1
 	highlight.OutlineTransparency = 0
+	highlight.Adornee = target.Character
 	highlight.Parent = target.Character
 
+	-- Nombre flotante
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "NameTag"
 	billboard.Size = UDim2.new(0, 220, 0, 18)
@@ -110,7 +100,7 @@ local function createESP(target)
 	nameLabel.TextScaled = true
 	nameLabel.Parent = billboard
 
-	-- === NUEVO TRACKER 3D (Beam con color dinámico) ===
+	-- Beam (línea de cámara)
 	local camPart = Instance.new("Part")
 	camPart.Anchored = true
 	camPart.CanCollide = false
@@ -119,15 +109,12 @@ local function createESP(target)
 	camPart.Parent = workspace
 
 	local cameraAttachment = Instance.new("Attachment")
-	cameraAttachment.Name = "CameraAttachment"
 	cameraAttachment.Parent = camPart
 
 	local targetAttachment = Instance.new("Attachment")
-	targetAttachment.Name = "TargetAttachment"
 	targetAttachment.Parent = target.Character:WaitForChild("HumanoidRootPart")
 
 	local beam = Instance.new("Beam")
-	beam.Name = "ESPBeam"
 	beam.Attachment0 = cameraAttachment
 	beam.Attachment1 = targetAttachment
 	beam.FaceCamera = true
@@ -136,17 +123,18 @@ local function createESP(target)
 	beam.Width1 = 0.1
 	beam.Transparency = NumberSequence.new(0.15)
 	beam.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255))
-	beam.Parent = workspace
+	beam.Parent = cameraAttachment -- <- esto es importante
 
-	RunService.RenderStepped:Connect(function()
+	-- Render loop
+	local conn
+	conn = RunService.RenderStepped:Connect(function()
 		if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then
 			beam.Enabled = false
+			if conn then conn:Disconnect() end
 			return
 		end
 
-		-- Actualizar posición de cámara y objetivo
 		camPart.CFrame = camera.CFrame
-		targetAttachment.WorldPosition = target.Character.HumanoidRootPart.Position
 
 		local root = target.Character.HumanoidRootPart
 		local dist = (player.Character.HumanoidRootPart.Position - root.Position).Magnitude
@@ -162,40 +150,33 @@ local function createESP(target)
 		local crawlingValue = crawling and crawling.Value
 		local currentAnimValue = (currentAnim and currentAnim.Value) or ""
 
-		-- === CÁLCULO DE COLOR DINÁMICO ===
-		local color = Color3.fromRGB(255, 255, 255) -- por defecto humano
-
+		-- Color dinámico
+		local color = Color3.fromRGB(255, 255, 255)
 		if beastValue then
-			color = Color3.fromRGB(255, 0, 0) -- Beast
+			color = Color3.fromRGB(255, 0, 0)
 		elseif capturedValue then
-			color = Color3.fromRGB(150, 220, 255) -- Capturado (azul hielo)
+			color = Color3.fromRGB(150, 220, 255)
 		elseif currentAnimValue == "Typing" then
-			color = Color3.fromRGB(0, 255, 0) -- Escribiendo
+			color = Color3.fromRGB(0, 255, 0)
 		end
 
-		-- Detectar si hay una bestia cerca
-		local beast = nil
+		-- Detectar bestia cercana
 		for _, plr in pairs(Players:GetPlayers()) do
 			local ts = plr:FindFirstChild("TempPlayerStatsModule")
-			if ts and ts:FindFirstChild("IsBeast") and ts.IsBeast.Value then
-				beast = plr
-				break
+			if ts and ts:FindFirstChild("IsBeast") and ts.IsBeast.Value and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+				local beastDist = (plr.Character.HumanoidRootPart.Position - root.Position).Magnitude
+				if beastDist < 30 and not beastValue then
+					color = Color3.fromRGB(255, 180, 50)
+					break
+				end
 			end
 		end
 
-		if beast and beast.Character and beast.Character:FindFirstChild("HumanoidRootPart") then
-			local beastDist = (beast.Character.HumanoidRootPart.Position - root.Position).Magnitude
-			if beastDist < 30 and not beastValue then
-				color = Color3.fromRGB(255, 180, 50) -- Amarillo-naranja si hay bestia cerca
-			end
-		end
-
-		-- Si está agachado (IsCrawling), oscurecer 30%
 		if crawlingValue then
 			color = Color3.new(color.R * 0.7, color.G * 0.7, color.B * 0.7)
 		end
 
-		-- === APLICAR COLOR Y DATOS ===
+		-- Aplicar color
 		highlight.OutlineColor = color
 		nameLabel.TextColor3 = color
 		nameLabel.Text = string.format("%s [%s (%.0f%%)] - %.1f",
@@ -206,13 +187,12 @@ local function createESP(target)
 				and target.SavedPlayerStatsModule.BeastChance.Value) or 0,
 			dist
 		)
-
 		beam.Color = ColorSequence.new(color)
 		beam.Enabled = true
 	end)
 end
 
---// Aplicar ESP a todos los jugadores
+-- Aplicar ESP a todos los jugadores
 for _, plr in pairs(Players:GetPlayers()) do
 	if plr ~= player then
 		plr.CharacterAdded:Connect(function()
