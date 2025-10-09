@@ -100,35 +100,51 @@ local function createESP(target)
 	nameLabel.TextScaled = true
 	nameLabel.Parent = billboard
 
-	-- === TRACKER 3D REAL (VISIBLE Y DINÁMICO) ===
+	-- === TRACKER 3D (GARANTIZADO FUNCIONAL) ===
     local camPart = Instance.new("Part")
+    camPart.Name = "CamPart_" .. target.Name
     camPart.Anchored = true
     camPart.CanCollide = false
     camPart.Transparency = 1
-    camPart.Size = Vector3.new(0.1, 0.1, 0.1)
-    camPart.Name = "CameraTrackerPart"
+    camPart.Size = Vector3.new(0.2, 0.2, 0.2)
     camPart.Parent = workspace
     
-    local cameraAttachment = Instance.new("Attachment")
-    cameraAttachment.Name = "CameraAttachment"
-    cameraAttachment.Parent = camPart
+    local camAttach = Instance.new("Attachment")
+    camAttach.Name = "CameraAttach"
+    camAttach.Parent = camPart
     
-    local targetAttachment = Instance.new("Attachment")
-    targetAttachment.Name = "TargetAttachment"
-    targetAttachment.Parent = target.Character:WaitForChild("HumanoidRootPart")
+    local root = target.Character:WaitForChild("HumanoidRootPart")
+    
+    local targetAttach = Instance.new("Attachment")
+    targetAttach.Name = "TargetAttach"
+    targetAttach.Parent = root
     
     local beam = Instance.new("Beam")
-    beam.Attachment0 = cameraAttachment
-    beam.Attachment1 = targetAttachment
+    beam.Attachment0 = camAttach
+    beam.Attachment1 = targetAttach
     beam.FaceCamera = true
     beam.LightEmission = 1
-    beam.Width0 = 0.15
-    beam.Width1 = 0.15
-    beam.Transparency = NumberSequence.new(0.05)
+    beam.Width0 = 0.1
+    beam.Width1 = 0.1
+    beam.Transparency = NumberSequence.new(0.15)
     beam.Segments = 1
-    beam.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255))
-    beam.Parent = workspace  -- 🔥 importante: parent directo en workspace
+    beam.Parent = workspace
     beam.Enabled = true
+    
+    -- Color base del jugador
+    local function getColor(plr)
+    	local tempStats = plr:FindFirstChild("TempPlayerStatsModule")
+    	if not tempStats then return Color3.fromRGB(255, 255, 255) end
+    	if tempStats:FindFirstChild("IsBeast") and tempStats.IsBeast.Value then
+    		return Color3.fromRGB(255, 0, 0)
+    	elseif tempStats:FindFirstChild("Captured") and tempStats.Captured.Value then
+    		return Color3.fromRGB(150, 220, 255)
+    	elseif tempStats:FindFirstChild("CurrentAnimation") and tempStats.CurrentAnimation.Value == "Typing" then
+    		return Color3.fromRGB(0, 255, 0)
+    	else
+    		return Color3.fromRGB(255, 255, 255)
+    	end
+    end
     
     RunService.RenderStepped:Connect(function()
     	if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then
@@ -136,47 +152,26 @@ local function createESP(target)
     		return
     	end
     
-    	-- Mantener posición de la cámara
+    	-- Mantener la posición del punto de la cámara
     	camPart.CFrame = CFrame.new(camera.CFrame.Position)
     
-    	-- Calcular color dinámico (igual al del highlight)
-    	local tempStats = target:FindFirstChild("TempPlayerStatsModule")
-    	local isBeast = tempStats and tempStats:FindFirstChild("IsBeast")
-    	local captured = tempStats and tempStats:FindFirstChild("Captured")
-    	local crawling = tempStats and tempStats:FindFirstChild("IsCrawling")
-    	local currentAnim = tempStats and tempStats:FindFirstChild("CurrentAnimation")
+    	-- Actualizar color dinámico
+    	local col = getColor(target)
     
-    	local beastValue = isBeast and isBeast.Value
-    	local capturedValue = captured and captured.Value
-    	local crawlingValue = crawling and crawling.Value
-    	local currentAnimValue = (currentAnim and currentAnim.Value) or ""
-    
-    	local color = Color3.fromRGB(255, 255, 255)
-    	if beastValue then
-    		color = Color3.fromRGB(255, 0, 0)
-    	elseif capturedValue then
-    		color = Color3.fromRGB(150, 220, 255)
-    	elseif currentAnimValue == "Typing" then
-    		color = Color3.fromRGB(0, 255, 0)
-    	end
-    
-    	-- Detectar si hay bestia cerca
+    	-- Cambiar color si hay bestia cerca
     	for _, plr in pairs(Players:GetPlayers()) do
-    		local ts = plr:FindFirstChild("TempPlayerStatsModule")
-    		if ts and ts:FindFirstChild("IsBeast") and ts.IsBeast.Value and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-    			local beastDist = (plr.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
-    			if beastDist < 30 and not beastValue then
-    				color = Color3.fromRGB(255, 180, 50)
+    		local stats = plr:FindFirstChild("TempPlayerStatsModule")
+    		if stats and stats:FindFirstChild("IsBeast") and stats.IsBeast.Value and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+    			local dist = (plr.Character.HumanoidRootPart.Position - root.Position).Magnitude
+    			if dist < 30 and not (stats.IsBeast.Value and plr == target) then
+    				col = Color3.fromRGB(255, 180, 50)
     				break
     			end
     		end
     	end
     
-    	if crawlingValue then
-    		color = Color3.new(color.R * 0.7, color.G * 0.7, color.B * 0.7)
-    	end
-    
-    	beam.Color = ColorSequence.new(color)
+    	beam.Color = ColorSequence.new(col)
+    	beam.Enabled = true
     end)
 end
 
