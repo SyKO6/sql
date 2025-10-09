@@ -24,7 +24,7 @@ end
 -- ===== AJUSTES BASE =====
 pcall(function()
 	Lighting.ClockTime = 14 -- Hora del día para sol alto
-	Lighting.Brightness = 5
+	Lighting.Brightness = 2.4
 	Lighting.Ambient = Color3.fromRGB(0, 0, 0)
 	Lighting.OutdoorAmbient = Color3.fromRGB(0, 0, 0)
 	Lighting.FogStart = 0
@@ -50,7 +50,7 @@ blur2.Parent = Lighting
 -- ===== ATMOSPHERE =====
 local atmosphere = Instance.new("Atmosphere")
 atmosphere.Name = "RealisticAtmosphere"
-atmosphere.Density = 0.6
+atmosphere.Density = 0.52
 atmosphere.Offset = 0.0
 atmosphere.Color = Color3.fromRGB(255, 255, 255)
 atmosphere.Decay = Color3.fromRGB(185, 185, 185)
@@ -63,24 +63,17 @@ local cc = Instance.new("ColorCorrectionEffect")
 cc.Name = "RealisticColorCorrection"
 cc.Brightness = -0.12
 cc.Contrast = 0.45
-cc.Saturation = 0.2
+cc.Saturation = 0.25
 cc.TintColor = Color3.fromRGB(242, 255, 255)
 cc.Parent = Lighting
 
 -- ===== BLOOM =====
 local bloom = Instance.new("BloomEffect")
 bloom.Name = "RealisticBloom"
-bloom.Intensity = 0.2
-bloom.Size = 2800
-bloom.Threshold = 1.0
+bloom.Intensity = 0.24
+bloom.Size = 3000
+bloom.Threshold = 0.25
 bloom.Parent = Lighting
-
-local bloom2 = Instance.new("BloomEffect")
-bloom2.Name = "RealisticBloom2"
-bloom2.Intensity = 0.001
-bloom2.Size = 0.01
-bloom2.Threshold = 0.5
-bloom2.Parent = Lighting
 
 -- ===== SUNRAYS =====
 local sunRays = Instance.new("SunRaysEffect")
