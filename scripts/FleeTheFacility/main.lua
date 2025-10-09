@@ -11,6 +11,7 @@ local camera = workspace.CurrentCamera
 --// Variables
 local normalSpeed = 18.8
 local crawlSpeed = 10.8
+local beastSpeed = 18.8
 local fov = 80
 
 --// Aplicar configuración visual
@@ -36,7 +37,7 @@ task.spawn(function()
 	end
 end)
 
---// Sistema de velocidad dinámica
+--// Sistema de velocidad dinámica (Humano + Bestia)
 local function enforceWalkSpeed()
 	local character = player.Character or player.CharacterAdded:Wait()
 	local humanoid = character:WaitForChild("Humanoid")
@@ -52,8 +53,20 @@ local function enforceWalkSpeed()
 			local crawling = isCrawling.Value
 			local beast = isBeast.Value
 
+			-- 🧍‍♂️ Jugador normal
 			if not beast then
 				humanoid.WalkSpeed = crawling and crawlSpeed or normalSpeed
+			else
+				-- 🧟‍♂️ Bestia: asegurar velocidad base 18.8
+				if humanoid.WalkSpeed < beastSpeed then
+					task.delay(1, function()
+						if humanoid and humanoid.WalkSpeed < beastSpeed then
+							humanoid.WalkSpeed = beastSpeed
+						end
+					end)
+				elseif humanoid.WalkSpeed ~= beastSpeed then
+					humanoid.WalkSpeed = beastSpeed
+				end
 			end
 		end
 	end)
@@ -227,21 +240,29 @@ end)
 
 --// 🟣 Mensaje informativo en el chat
 local function sendChat(msg)
-	game:GetService("StarterGui"):SetCore("ChatMakeSystemMessage", {
-		Text = msg;
-		Color = Color3.fromRGB(200,200,200);
-		Font = Enum.Font.SourceSansBold;
-		TextSize = 18;
-	})
+	local success = false
+	repeat
+		success = pcall(function()
+			game:GetService("StarterGui"):SetCore("ChatMakeSystemMessage", {
+				Text = msg;
+				Color = Color3.fromRGB(200,200,200);
+				Font = Enum.Font.SourceSansBold;
+				TextSize = 18;
+			})
+		end)
+		task.wait(0.5)
+	until success
 end
 
-task.wait(1)
-sendChat("🔰 [Syk0 FTF]")
-sendChat("⚪ Blanco = Normal")
-sendChat("🟢 Verde = Hackeandl")
-sendChat("🔵 Azul = Congelado (Captured)")
-sendChat("🟣 Morado = Ragdoll")
-sendChat("💜 Púrpura claro = Ragdoll + Bestia cerca")
-sendChat("🟠 Naranja = Bestia cerca")
-sendChat("🔴 Rojo = Bestia")
-sendChat("⚫ Opaco = Agachado")
+task.spawn(function()
+	task.wait(2)
+	sendChat("🔰 [Syk0 FTF]")
+	sendChat("⚪ Blanco = Normal")
+	sendChat("🟢 Verde = Hackeando")
+	sendChat("🔵 Azul = Congelado (Captured)")
+	sendChat("🟣 Morado = Ragdoll")
+	sendChat("💜 Púrpura claro = Ragdoll + Bestia cerca")
+	sendChat("🟠 Naranja = Bestia cerca")
+	sendChat("🔴 Rojo = Bestia")
+	sendChat("⚫ Opaco = Agachado (máxima prioridad)")
+end)
