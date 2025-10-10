@@ -38,7 +38,6 @@ task.spawn(function()
 end)
 
 --// Sistema de velocidad dinámica (Humano + Bestia)
---// Sistema de velocidad dinámica (Humano + Bestia)
 local function enforceWalkSpeed()
 	local character = player.Character or player.CharacterAdded:Wait()
 	local humanoid = character:WaitForChild("Humanoid")
@@ -49,7 +48,6 @@ local function enforceWalkSpeed()
 	local isCrawling = tempStats:FindFirstChild("IsCrawling")
 	local isBeast = tempStats:FindFirstChild("IsBeast")
 
-	-- bandera para evitar programar múltiples delays
 	local beastSpeedPending = false
 
 	RunService.Heartbeat:Connect(function()
@@ -57,16 +55,13 @@ local function enforceWalkSpeed()
 			local crawling = isCrawling.Value
 			local beast = isBeast.Value
 
-			-- 🧍‍♂️ Jugador normal
 			if not beast then
 				humanoid.WalkSpeed = crawling and crawlSpeed or normalSpeed
 			else
-				-- 🧟‍♂️ Bestia: si tiene velocidad menor a beastSpeed, esperar 1s y luego establecer
 				if humanoid.WalkSpeed < beastSpeed then
 					if not beastSpeedPending then
 						beastSpeedPending = true
 						task.delay(1, function()
-							-- comprobar que el humanoide sigue existiendo y sigue con velocidad menor
 							if humanoid and humanoid.Parent and humanoid.WalkSpeed < beastSpeed then
 								humanoid.WalkSpeed = beastSpeed
 							end
@@ -74,7 +69,6 @@ local function enforceWalkSpeed()
 						end)
 					end
 				end
-				-- Nota: ya no forzamos inmediatamente WalkSpeed = beastSpeed si es distinto.
 			end
 		end
 	end)
@@ -94,7 +88,7 @@ local function createESP(target)
 
 	local highlight = Instance.new("Highlight")
 	highlight.Name = "ESPHighlight"
-	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop -- se ve a través de paredes
+	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 	highlight.FillTransparency = 1
 	highlight.OutlineTransparency = 0
 	highlight.Parent = target.Character
@@ -113,9 +107,9 @@ local function createESP(target)
 	nameLabel.TextStrokeTransparency = 0.5
 	nameLabel.Font = Enum.Font.GothamBold
 	nameLabel.TextScaled = true
+	nameLabel.TextTransparency = 0.25 -- 75% visible
 	nameLabel.Parent = billboard
 
-	-- 🧠 Tracker 3D (línea entre torsos)
 	local playerTorso = player.Character:WaitForChild("HumanoidRootPart")
 	local targetTorso = target.Character:WaitForChild("HumanoidRootPart")
 
@@ -153,7 +147,6 @@ local function createESP(target)
 		local ragdollValue = ragdoll and ragdoll.Value
 		local currentAnimValue = (currentAnim and currentAnim.Value) or ""
 
-		-- 🔢 Sistema de prioridad de colores
 		local finalColor = Color3.fromRGB(255, 255, 255)
 		local priority = 1
 
@@ -185,10 +178,10 @@ local function createESP(target)
 			if beastDist < 30 then
 				beastNearby = true
 				if ragdollValue then
-					finalColor = Color3.fromRGB(220, 120, 255) -- púrpura claro (ragdoll + beast cerca)
+					finalColor = Color3.fromRGB(220, 120, 255)
 					priority = 5
 				elseif priority < 5 then
-					finalColor = Color3.fromRGB(255, 180, 50) -- naranja
+					finalColor = Color3.fromRGB(255, 180, 50)
 					priority = 5
 				end
 			end
@@ -199,21 +192,34 @@ local function createESP(target)
 			priority = 10
 		end
 
-		-- Si está agachado (IsCrawling), aplicar siempre opaco sin importar prioridad
 		if crawlingValue then
 			local r, g, b = finalColor.R * 255, finalColor.G * 255, finalColor.B * 255
 			finalColor = Color3.fromRGB(r * 0.7, g * 0.7, b * 0.7)
 		end
 
-		-- Actualizar visual
 		highlight.OutlineColor = finalColor
 		nameLabel.TextColor3 = finalColor
+
 		nameLabel.Text = string.format("%s [%s (%.0f%%)] - %.1f",
 			target.Name,
 			beastValue and "Beast" or "Human",
-			(target:FindFirstChild("SavedPlayerStatsModule")
-				and target.SavedPlayerStatsModule:FindFirstChild("BeastChance")
-				and target.SavedPlayerStatsModule.BeastChance.Value) or 0,
+			(function()
+				local gui = target:FindFirstChildOfClass("PlayerGui")
+				if gui then
+					local label = gui:FindFirstChild("MenusScreenGui", true)
+						and gui.MenusScreenGui:FindFirstChild("MainMenuWindow", true)
+						and gui.MenusScreenGui.MainMenuWindow:FindFirstChild("Body", true)
+						and gui.MenusScreenGui.MainMenuWindow.Body:FindFirstChild("BeastChanceFrame", true)
+						and gui.MenusScreenGui.MainMenuWindow.Body.BeastChanceFrame:FindFirstChild("PercentageLabel", true)
+					if label and label:IsA("TextLabel") and label.Text then
+						local number = string.match(label.Text, "%d+")
+						if number then
+							return tonumber(number)
+						end
+					end
+				end
+				return 0
+			end)(),
 			dist
 		)
 
@@ -228,7 +234,6 @@ local function createESP(target)
 	end)
 end
 
---// Aplicar ESP a todos los jugadores
 for _, plr in pairs(Players:GetPlayers()) do
 	if plr ~= player then
 		plr.CharacterAdded:Connect(function()
@@ -247,15 +252,11 @@ Players.PlayerAdded:Connect(function(plr)
 end)
 
 
-
-
-
 -- 🧿 Sistema de Temmie flotante solo en ComputerTable > Screen
 local TEMMIE_IMAGE_ID = "rbxassetid://90866842257772"
 local OFFSET_Y = -1
 local TEMMIE_SIZE = UDim2.new(0, 40, 0, 40)
 
--- Crea el Temmie debajo del BillboardGui original
 local function createTemmieBillboard(originalBill)
 	if not originalBill or not originalBill:IsA("BillboardGui") then return end
 
@@ -264,7 +265,6 @@ local function createTemmieBillboard(originalBill)
 	if not (screen and screen:IsA("BasePart")) then return end
 	if not (tableModel and tableModel.Name == "ComputerTable") then return end
 
-	-- Evitar duplicados
 	if screen:FindFirstChild("BillboardGuiTemmie") then return end
 
 	local temmie = Instance.new("BillboardGui")
@@ -274,7 +274,7 @@ local function createTemmieBillboard(originalBill)
 	temmie.Enabled = true
 	temmie.Active = true
 	temmie.LightInfluence = 0
-	temmie.MaxDistance = math.huge -- 🔥 visible desde cualquier distancia
+	temmie.MaxDistance = math.huge
 	temmie.Parent = screen
 
 	local imageLabel = Instance.new("ImageLabel")
@@ -282,10 +282,9 @@ local function createTemmieBillboard(originalBill)
 	imageLabel.BackgroundTransparency = 1
 	imageLabel.Size = UDim2.new(1, 0, 1, 0)
 	imageLabel.Image = TEMMIE_IMAGE_ID
-	imageLabel.ImageTransparency = 0.15 -- 🟦 Por defecto 90% visible (0 = opaco, 1 = invisible)
+	imageLabel.ImageTransparency = 0.3 -- 70% visible
 	imageLabel.Parent = temmie
 
-	-- Posición igual al original, pero 1 bloque más abajo
 	if originalBill.Adornee and originalBill.Adornee:IsA("BasePart") then
 		local adornee = originalBill.Adornee
 		local attach = adornee:FindFirstChild("TemmieAttachment")
@@ -297,7 +296,6 @@ local function createTemmieBillboard(originalBill)
 		end
 		temmie.Adornee = attach
 	else
-		-- fallback: colocar directamente en Screen
 		local attach = screen:FindFirstChild("TemmieAttachment")
 		if not attach then
 			attach = Instance.new("Attachment")
@@ -309,7 +307,6 @@ local function createTemmieBillboard(originalBill)
 	end
 end
 
--- Buscar todos los ComputerTable existentes
 local function ensureAllTemmies()
 	for _, tbl in ipairs(workspace:GetDescendants()) do
 		if tbl.Name == "ComputerTable" and tbl:FindFirstChild("Screen") then
@@ -322,10 +319,8 @@ local function ensureAllTemmies()
 	end
 end
 
--- Ejecutar al inicio
 ensureAllTemmies()
 
--- Detectar nuevas ComputerTables o Screens dinámicas
 workspace.DescendantAdded:Connect(function(obj)
 	if obj.Name == "ComputerTable" then
 		task.spawn(function()
@@ -342,33 +337,26 @@ workspace.DescendantAdded:Connect(function(obj)
 	end
 end)
 
--- ✅ Solución alternativa sin error
--- Verifica periódicamente si falta algún Temmie y lo regenera
 task.spawn(function()
 	while task.wait(2) do
 		ensureAllTemmies()
 	end
 end)
 
-
-
--- 🌀 TEMMIE VISIBILITY + COMPUTER TABLE CONTOUR SYSTEM
-
 local MIN_DIST = 15
 local MAX_DIST = 30
 local CONTOUR_COLOR = Color3.fromRGB(0, 255, 0)
-local FADE_SPEED = 0.2 -- suavidad (0.1 más lento, 0.3 más rápido)
+local FADE_SPEED = 0.2
 
 local activeTables = {}
 
--- Función para crear el contorno azul (ESP)
 local function createContour(tableModel)
 	if not tableModel:FindFirstChild("TableESP") then
 		local hl = Instance.new("Highlight")
 		hl.Name = "TableESP"
 		hl.Adornee = tableModel
-		hl.FillTransparency = 1 -- sin relleno
-		hl.OutlineTransparency = 1 -- totalmente invisible al inicio
+		hl.FillTransparency = 1
+		hl.OutlineTransparency = 1
 		hl.OutlineColor = CONTOUR_COLOR
 		hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 		hl.Parent = tableModel
@@ -378,21 +366,18 @@ local function createContour(tableModel)
 	end
 end
 
--- Detectar todas las mesas existentes
 for _, obj in ipairs(workspace:GetDescendants()) do
 	if obj.Name == "ComputerTable" then
 		createContour(obj)
 	end
 end
 
--- Detectar nuevas mesas que aparezcan después
 workspace.DescendantAdded:Connect(function(obj)
 	if obj.Name == "ComputerTable" then
 		createContour(obj)
 	end
 end)
 
--- Función principal de actualización (fade dinámico)
 RunService.RenderStepped:Connect(function(dt)
 	if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
 		return
@@ -412,20 +397,15 @@ RunService.RenderStepped:Connect(function(dt)
 					local adornee = temmie.Adornee
 					if adornee and adornee:IsA("Attachment") and adornee.Parent then
 						local dist = (root.Position - adornee.Parent.Position).Magnitude
-
-						-- Calcular alpha: 0 cerca, 1 lejos
 						local targetAlpha = math.clamp((dist - MIN_DIST) / (MAX_DIST - MIN_DIST), 0, 1)
-
-						-- Suavizar cambio (interpolación progresiva)
 						data.alpha = data.alpha + (targetAlpha - data.alpha) * (FADE_SPEED * 60 * dt)
 
-						-- Aplicar transparencias inversas
 						local image = temmie:FindFirstChildWhichIsA("ImageLabel") or temmie:FindFirstChildWhichIsA("ImageButton")
 						if image then
-							image.ImageTransparency = 1 - (data.alpha * 0.95) -- límite 0.1 mínima (90% visible máximo)
+							image.ImageTransparency = 1 - (data.alpha * 0.7) -- 70% visible máximo
 						end
 
-						hl.OutlineTransparency = data.alpha -- Contorno aparece al acercarse
+						hl.OutlineTransparency = data.alpha
 					end
 				end
 			end
