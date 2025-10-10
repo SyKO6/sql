@@ -343,10 +343,10 @@ workspace.DescendantAdded:Connect(function(obj)
 	end
 end)
 
--- Si se borra un Temmie, volverlo a crear
-workspace.DescendantRemoved:Connect(function(obj)
-	if obj.Name == "BillboardGuiTemmie" then
-		task.wait(1)
+-- ✅ Solución alternativa sin error
+-- Verifica periódicamente si falta algún Temmie y lo regenera
+task.spawn(function()
+	while task.wait(2) do
 		ensureAllTemmies()
 	end
 end)
