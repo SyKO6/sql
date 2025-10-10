@@ -62,7 +62,7 @@ atmosphere.Parent = Lighting
 -- ===== COLOR CORRECTION =====
 local cc = Instance.new("ColorCorrectionEffect")
 cc.Name = "RealisticColorCorrection"
-cc.Brightness = -0.12
+cc.Brightness = -0.05
 cc.Contrast = 0.45
 cc.Saturation = 0.35
 cc.TintColor = Color3.fromRGB(240, 240, 255)
