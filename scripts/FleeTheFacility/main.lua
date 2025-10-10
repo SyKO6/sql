@@ -200,7 +200,7 @@ local function createESP(target)
 		highlight.OutlineColor = finalColor
 		nameLabel.TextColor3 = finalColor
 
-		nameLabel.Text = string.format("%s [%s (%.0f%%)] - %.1f",
+		nameLabel.Text = string.format("%s [%s (%.0f%)] - %.1f",
 			target.Name,
 			beastValue and "Beast" or "Human",
 			(function()
