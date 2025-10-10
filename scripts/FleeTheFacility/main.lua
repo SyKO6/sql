@@ -450,7 +450,7 @@ RunService.RenderStepped:Connect(function(dt)
     local lastColorState = {} -- almacena estado anterior para no repetir
     
     task.spawn(function()
-    	while task.wait(0.5) do -- cada medio segundo (puedes subir a 1 para aún menos carga)
+    	while task.wait(2) do -- cada medio segundo (puedes subir a 1 para aún menos carga)
     		for tableModel, data in pairs(activeTables) do
     			if tableModel and tableModel.Parent then
     				local screen = tableModel:FindFirstChild("Screen")
