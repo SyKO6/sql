@@ -350,3 +350,78 @@ workspace.DescendantRemoved:Connect(function(obj)
 		ensureAllTemmies()
 	end
 end)
+
+
+
+-- 🌀 Sistema de visibilidad progresiva (Temmie y contorno de ComputerTable)
+
+local MIN_DIST = 10
+local MAX_DIST = 20
+local CONTOUR_COLOR = Color3.fromRGB(0, 50, 150) -- azul oscuro
+local FADE_SPEED = 0.15 -- suavidad de transición (0.1 = rápido, 0.3 = lento)
+
+local activeTables = {}
+
+-- Crear contorno (Highlight) para cada ComputerTable
+local function ensureTableESP(tableModel)
+	if not tableModel:FindFirstChild("TableESP") then
+		local hl = Instance.new("Highlight")
+		hl.Name = "TableESP"
+		hl.FillTransparency = 1
+		hl.OutlineTransparency = 1
+		hl.OutlineColor = CONTOUR_COLOR
+		hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+		hl.Parent = tableModel
+	end
+	if not activeTables[tableModel] then
+		activeTables[tableModel] = {currentAlpha = 0}
+	end
+end
+
+-- Aplicar a todas las mesas existentes
+for _, tbl in ipairs(workspace:GetDescendants()) do
+	if tbl.Name == "ComputerTable" then
+		ensureTableESP(tbl)
+	end
+end
+
+-- Crear para futuras ComputerTables
+workspace.DescendantAdded:Connect(function(obj)
+	if obj.Name == "ComputerTable" then
+		ensureTableESP(obj)
+	end
+end)
+
+-- Actualización visual dinámica
+RunService.RenderStepped:Connect(function(dt)
+	if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+	local root = player.Character.HumanoidRootPart
+
+	for tbl, data in pairs(activeTables) do
+		if tbl and tbl.Parent and tbl:FindFirstChild("Screen") then
+			local screen = tbl.Screen
+			local temmie = screen:FindFirstChild("BillboardGuiTemmie")
+			local hl = tbl:FindFirstChild("TableESP")
+
+			if temmie and hl then
+				local adornee = temmie.Adornee
+				if adornee and adornee:IsA("Attachment") and adornee.Parent then
+					local dist = (root.Position - adornee.Parent.Position).Magnitude
+
+					-- Calcular alpha lineal entre 10 y 20 studs
+					local targetAlpha = math.clamp((dist - MIN_DIST) / (MAX_DIST - MIN_DIST), 0, 1)
+
+					-- Suavizar el cambio (interpolación progresiva)
+					data.currentAlpha = data.currentAlpha + (targetAlpha - data.currentAlpha) * FADE_SPEED
+
+					local image = temmie:FindFirstChild("ImageLabel")
+					if image then
+						image.ImageTransparency = 1 - data.currentAlpha
+					end
+
+					hl.OutlineTransparency = data.currentAlpha
+				end
+			end
+		end
+	end
+end)
