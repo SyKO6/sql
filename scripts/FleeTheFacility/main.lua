@@ -268,7 +268,7 @@ end)
 -- 🧿 Sistema de Temmie flotante solo en ComputerTable > Screen  
 local TEMMIE_IMAGE_ID = "rbxassetid://90866842257772"  
 local OFFSET_Y = -1  
-local TEMMIE_SIZE = UDim2.new(0, 40, 0, 40)  
+local TEMMIE_SIZE = UDim2.new(0, 50, 0, 50)  
   
 -- Crea el Temmie debajo del BillboardGui original  
 local function createTemmieBillboard(originalBill)  
@@ -297,7 +297,7 @@ local function createTemmieBillboard(originalBill)
 	imageLabel.BackgroundTransparency = 1  
 	imageLabel.Size = UDim2.new(1, 0, 1, 0)  
 	imageLabel.Image = TEMMIE_IMAGE_ID  
-	imageLabel.ImageTransparency = 0.3 -- 🟦 Por defecto 90% visible (0 = opaco, 1 = invisible)  
+	imageLabel.ImageTransparency = 0.25 -- 🟦 Por defecto 90% visible (0 = opaco, 1 = invisible)  
 	imageLabel.Parent = temmie  
   
 	-- Posición igual al original, pero 1 bloque más abajo  
@@ -437,7 +437,7 @@ RunService.RenderStepped:Connect(function(dt)
 						-- Aplicar transparencias inversas  
 						local image = temmie:FindFirstChildWhichIsA("ImageLabel") or temmie:FindFirstChildWhichIsA("ImageButton")  
 						if image then  
-							image.ImageTransparency = 1 - (data.alpha * 0.7) -- límite 0.1 mínima (90% visible máximo)  
+							image.ImageTransparency = 1 - (data.alpha * 0.85) -- límite 0.1 mínima (90% visible máximo)  
 						end  
   
 						hl.OutlineTransparency = data.alpha -- Contorno aparece al acercarse  
