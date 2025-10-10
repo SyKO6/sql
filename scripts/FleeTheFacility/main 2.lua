@@ -445,38 +445,5 @@ RunService.RenderStepped:Connect(function(dt)
 				end  
 			end  
 		end  
-	end
-	-- 🧩 SISTEMA DE DETECCIÓN DE COLOR EN SCREEN (DESACTIVA TEMMIE Y ESP)
-    local DISABLE_COLOR = Color3.fromRGB(40, 127, 71)
-    
-    RunService.Heartbeat:Connect(function()
-    	for tableModel, data in pairs(activeTables) do
-    		if tableModel and tableModel.Parent then
-    			local screen = tableModel:FindFirstChild("Screen")
-    			if screen and screen:IsA("BasePart") then
-    				local temmie = screen:FindFirstChild("BillboardGuiTemmie")
-    				local esp = tableModel:FindFirstChild("TableESP")
-    
-    				local isDisabled = false
-    				local color = screen.Color
-    
-    				-- Compara el color actual con el color objetivo
-    				if math.floor(color.R * 255) == 40
-    					and math.floor(color.G * 255) == 127
-    					and math.floor(color.B * 255) == 71 then
-    					isDisabled = true
-    				end
-    
-    				-- Aplicar el estado
-    				if temmie then
-    					temmie.Enabled = not isDisabled
-    				end
-    				if esp then
-    					esp.Enabled = not isDisabled
-    				end
-    			end
-    		end
-    	end
-    end)
+	end  
 end)
-
