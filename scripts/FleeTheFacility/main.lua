@@ -23,7 +23,7 @@ player.CameraMaxZoomDistance = 1000
 --// Corrección de iluminación (visión clara)
 Lighting.GlobalShadows = false
 Lighting.Atmosphere.Density = 0
-Lighting.Brightness = 3
+Lighting.Brightness = 1
 Lighting.FogEnd = 100000
 Lighting.ExposureCompensation = 0.5
 
