@@ -24,15 +24,16 @@ end
 -- ===== AJUSTES BASE =====
 pcall(function()
 	Lighting.ClockTime = 14 -- Hora del día para sol alto
-	Lighting.Brightness = 2.4
+	Lighting.Brightness = 2.8
 	Lighting.Ambient = Color3.fromRGB(0, 0, 0)
 	Lighting.OutdoorAmbient = Color3.fromRGB(0, 0, 0)
 	Lighting.FogStart = 0
+	Lighting.ShadowSoftness = 0.05
 	Lighting.FogEnd = 2800
 	Lighting.FogColor = Color3.fromRGB(0, 0, 0)
 	Lighting.GlobalShadows = true
 	Lighting.EnvironmentDiffuseScale = 1.5
-	Lighting.EnvironmentSpecularScale = 1.5
+	Lighting.EnvironmentSpecularScale = 8.0
 	Lighting.Technology = Enum.Technology.Future
 end)
 
@@ -50,7 +51,7 @@ blur2.Parent = Lighting
 -- ===== ATMOSPHERE =====
 local atmosphere = Instance.new("Atmosphere")
 atmosphere.Name = "RealisticAtmosphere"
-atmosphere.Density = 0.52
+atmosphere.Density = 0.4
 atmosphere.Offset = 0.0
 atmosphere.Color = Color3.fromRGB(255, 255, 255)
 atmosphere.Decay = Color3.fromRGB(185, 185, 185)
@@ -63,7 +64,7 @@ local cc = Instance.new("ColorCorrectionEffect")
 cc.Name = "RealisticColorCorrection"
 cc.Brightness = -0.12
 cc.Contrast = 0.45
-cc.Saturation = 0.25
+cc.Saturation = 0.35
 cc.TintColor = Color3.fromRGB(242, 255, 255)
 cc.Parent = Lighting
 
