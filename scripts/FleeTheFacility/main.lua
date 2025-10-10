@@ -353,73 +353,81 @@ end)
 
 
 
--- 🌀 Sistema de visibilidad progresiva (Temmie y contorno de ComputerTable)
+-- 🌀 TEMMIE VISIBILITY + COMPUTER TABLE CONTOUR SYSTEM
 
 local MIN_DIST = 10
 local MAX_DIST = 20
-local CONTOUR_COLOR = Color3.fromRGB(0, 50, 150) -- azul oscuro
-local FADE_SPEED = 0.15 -- suavidad de transición (0.1 = rápido, 0.3 = lento)
+local CONTOUR_COLOR = Color3.fromRGB(0, 50, 150)
+local FADE_SPEED = 0.2 -- suavidad (0.1 más lento, 0.3 más rápido)
 
 local activeTables = {}
 
--- Crear contorno (Highlight) para cada ComputerTable
-local function ensureTableESP(tableModel)
+-- Función para crear el contorno azul (ESP)
+local function createContour(tableModel)
 	if not tableModel:FindFirstChild("TableESP") then
 		local hl = Instance.new("Highlight")
 		hl.Name = "TableESP"
-		hl.FillTransparency = 1
-		hl.OutlineTransparency = 1
+		hl.Adornee = tableModel
+		hl.FillTransparency = 1 -- sin relleno
+		hl.OutlineTransparency = 1 -- totalmente invisible al inicio
 		hl.OutlineColor = CONTOUR_COLOR
 		hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 		hl.Parent = tableModel
 	end
 	if not activeTables[tableModel] then
-		activeTables[tableModel] = {currentAlpha = 0}
+		activeTables[tableModel] = {alpha = 0}
 	end
 end
 
--- Aplicar a todas las mesas existentes
-for _, tbl in ipairs(workspace:GetDescendants()) do
-	if tbl.Name == "ComputerTable" then
-		ensureTableESP(tbl)
+-- Detectar todas las mesas existentes
+for _, obj in ipairs(workspace:GetDescendants()) do
+	if obj.Name == "ComputerTable" then
+		createContour(obj)
 	end
 end
 
--- Crear para futuras ComputerTables
+-- Detectar nuevas mesas que aparezcan después
 workspace.DescendantAdded:Connect(function(obj)
 	if obj.Name == "ComputerTable" then
-		ensureTableESP(obj)
+		createContour(obj)
 	end
 end)
 
--- Actualización visual dinámica
+-- Función principal de actualización (fade dinámico)
 RunService.RenderStepped:Connect(function(dt)
-	if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+	if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+		return
+	end
+
 	local root = player.Character.HumanoidRootPart
 
-	for tbl, data in pairs(activeTables) do
-		if tbl and tbl.Parent and tbl:FindFirstChild("Screen") then
-			local screen = tbl.Screen
-			local temmie = screen:FindFirstChild("BillboardGuiTemmie")
-			local hl = tbl:FindFirstChild("TableESP")
+	for tableModel, data in pairs(activeTables) do
+		if tableModel and tableModel.Parent then
+			local screen = tableModel:FindFirstChild("Screen")
+			local hl = tableModel:FindFirstChild("TableESP")
 
-			if temmie and hl then
-				local adornee = temmie.Adornee
-				if adornee and adornee:IsA("Attachment") and adornee.Parent then
-					local dist = (root.Position - adornee.Parent.Position).Magnitude
+			if screen and hl then
+				local temmie = screen:FindFirstChild("BillboardGuiTemmie")
 
-					-- Calcular alpha lineal entre 10 y 20 studs
-					local targetAlpha = math.clamp((dist - MIN_DIST) / (MAX_DIST - MIN_DIST), 0, 1)
+				if temmie and temmie:IsA("BillboardGui") then
+					local adornee = temmie.Adornee
+					if adornee and adornee:IsA("Attachment") and adornee.Parent then
+						local dist = (root.Position - adornee.Parent.Position).Magnitude
 
-					-- Suavizar el cambio (interpolación progresiva)
-					data.currentAlpha = data.currentAlpha + (targetAlpha - data.currentAlpha) * FADE_SPEED
+						-- Calcular alpha: 0 cerca, 1 lejos
+						local targetAlpha = math.clamp((dist - MIN_DIST) / (MAX_DIST - MIN_DIST), 0, 1)
 
-					local image = temmie:FindFirstChild("ImageLabel")
-					if image then
-						image.ImageTransparency = 1 - data.currentAlpha
+						-- Suavizar cambio (interpolación progresiva)
+						data.alpha = data.alpha + (targetAlpha - data.alpha) * (FADE_SPEED * 60 * dt)
+
+						-- Aplicar transparencias inversas
+						local image = temmie:FindFirstChildWhichIsA("ImageLabel") or temmie:FindFirstChildWhichIsA("ImageButton")
+						if image then
+							image.ImageTransparency = 1 - data.alpha -- Temmie se desvanece al acercarse
+						end
+
+						hl.OutlineTransparency = data.alpha -- Contorno aparece al acercarse
 					end
-
-					hl.OutlineTransparency = data.currentAlpha
 				end
 			end
 		end
