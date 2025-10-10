@@ -210,23 +210,14 @@ local function createESP(target)
 		highlight.OutlineColor = finalColor  
 		nameLabel.TextColor3 = finalColor  
 		-- 🧠 Obtener el BeastChance directamente del GUI del jugador
-        local beastChanceText = ""
-        pcall(function()
-        	local guiLabel = target:WaitForChild("PlayerGui"):WaitForChild("MenusScreenGui")
-        		:WaitForChild("MainMenuWindow"):WaitForChild("Body")
-        		:WaitForChild("BeastChanceFrame"):WaitForChild("PercentageLabel")
-        	beastChanceText = guiLabel.Text or ""
-        end)
-        
-        -- Extraer solo los números del texto (por ejemplo "35%" → 35)
-        local beastChanceValue = tonumber(string.match(beastChanceText, "%d+")) or 0
-        
-        nameLabel.Text = string.format("%s [%s (%d%%)] - %.1f",
-        	target.Name,
-        	beastValue and "Beast" or "Human",
-        	beastChanceValue,
-        	dist
-        )
+        nameLabel.Text = string.format("%s [%s (%.0f%%)] - %.1f",  
+			target.Name,  
+			beastValue and "Beast" or "Human",  
+			(target:FindFirstChild("SavedPlayerStatsModule")  
+				and target.SavedPlayerStatsModule:FindFirstChild("BeastChance")  
+				and target.SavedPlayerStatsModule.BeastChance.Value) or 0,  
+			dist  
+		)  
   
 		local midpoint = (playerTorso.Position + targetTorso.Position) / 2  
 		local direction = (targetTorso.Position - playerTorso.Position)  
