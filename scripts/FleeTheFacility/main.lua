@@ -216,14 +216,16 @@ local function createESP(target)
         	and target.SavedPlayerStatsModule.BeastChance.Value
         ) or 0
         
-        -- Jugadores en partida
         local playerCount = math.max(#Players:GetPlayers(), 1)
         
-        -- Fórmula real del BeastChance dinámico
-        local visualChance = math.clamp(baseChance + ((100 - baseChance) / playerCount), 0, 100)
+        local visualChance
+        if baseChance == 0 then
+            visualChance = 0
+        else
+            visualChance = math.clamp(baseChance + ((100 - baseChance) / playerCount), 0, 100)
+        end
         
-        -- Actualizar el texto del name tag
-        nameLabel.Text = string.format("%s [%s (≈%.0f%%)] - %.1f",
+        nameLabel.Text = string.format("%s [%s (%.0f%%)] - %.1f",
         	target.Name,
         	beastValue and "Beast" or "Human",
         	visualChance,
