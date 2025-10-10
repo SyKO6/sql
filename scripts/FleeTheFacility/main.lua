@@ -250,19 +250,21 @@ end)
 
 
 
--- 🧿 Sistema de imágenes flotantes Temmie bajo cada BillboardGui existente
-
+-- 🧿 Sistema de Temmie flotante solo en ComputerTable > Screen
 local TEMMIE_IMAGE_ID = "rbxassetid://90866842257772"
 local OFFSET_Y = -1
 local TEMMIE_SIZE = UDim2.new(0, 40, 0, 40)
 
--- Crea la imagen flotante Temmie debajo de un BillboardGui original
+-- Crea el Temmie debajo del BillboardGui original
 local function createTemmieBillboard(originalBill)
 	if not originalBill or not originalBill:IsA("BillboardGui") then return end
-	local screen = originalBill.Parent
-	if not screen or not screen:IsA("BasePart") then return end
 
-	-- Verificar si ya existe uno
+	local screen = originalBill.Parent
+	local tableModel = screen and screen.Parent
+	if not (screen and screen:IsA("BasePart")) then return end
+	if not (tableModel and tableModel.Name == "ComputerTable") then return end
+
+	-- Evitar duplicados
 	if screen:FindFirstChild("BillboardGuiTemmie") then return end
 
 	local temmie = Instance.new("BillboardGui")
@@ -272,7 +274,7 @@ local function createTemmieBillboard(originalBill)
 	temmie.Enabled = true
 	temmie.Active = true
 	temmie.LightInfluence = 0
-	temmie.MaxDistance = 200
+	temmie.MaxDistance = math.huge -- 🔥 visible desde cualquier distancia
 	temmie.Parent = screen
 
 	local imageLabel = Instance.new("ImageLabel")
@@ -294,42 +296,54 @@ local function createTemmieBillboard(originalBill)
 		end
 		temmie.Adornee = attach
 	else
-		-- Si no hay adornee, se coloca manualmente en la posición del Screen
-		local part = screen
-		local attach = part:FindFirstChild("TemmieAttachment")
+		-- fallback: colocar directamente en Screen
+		local attach = screen:FindFirstChild("TemmieAttachment")
 		if not attach then
 			attach = Instance.new("Attachment")
 			attach.Name = "TemmieAttachment"
 			attach.Position = Vector3.new(0, OFFSET_Y, 0)
-			attach.Parent = part
+			attach.Parent = screen
 		end
 		temmie.Adornee = attach
 	end
 
-	print("[✅] BillboardGuiTemmie creado debajo de", originalBill:GetFullName())
+	print("[✅] BillboardGuiTemmie creado para", tableModel:GetFullName())
 end
 
--- Busca todas las Screens con BillboardGui y crea el Temmie
+-- Buscar todos los ComputerTable existentes
 local function ensureAllTemmies()
-	for _, obj in ipairs(workspace:GetDescendants()) do
-		if obj:IsA("BillboardGui") and obj.Name == "BillboardGui" then
-			createTemmieBillboard(obj)
+	for _, tbl in ipairs(workspace:GetDescendants()) do
+		if tbl.Name == "ComputerTable" and tbl:FindFirstChild("Screen") then
+			local screen = tbl.Screen
+			local originalBill = screen:FindFirstChild("BillboardGui")
+			if originalBill then
+				createTemmieBillboard(originalBill)
+			end
 		end
 	end
 end
 
--- Crear todos los Temmie iniciales
+-- Ejecutar al inicio
 ensureAllTemmies()
 
--- Detectar nuevas Screens/Billboards
+-- Detectar nuevas ComputerTables o Screens dinámicas
 workspace.DescendantAdded:Connect(function(obj)
-	if obj:IsA("BillboardGui") and obj.Name == "BillboardGui" then
-		task.wait(0.5)
-		createTemmieBillboard(obj)
+	if obj.Name == "ComputerTable" then
+		task.spawn(function()
+			obj:WaitForChild("Screen")
+			local screen = obj.Screen
+			local originalBill = screen:WaitForChild("BillboardGui")
+			createTemmieBillboard(originalBill)
+		end)
+	elseif obj.Name == "Screen" and obj.Parent and obj.Parent.Name == "ComputerTable" then
+		task.spawn(function()
+			local bill = obj:WaitForChild("BillboardGui")
+			createTemmieBillboard(bill)
+		end)
 	end
 end)
 
--- Si se borra un Temmie, lo regenera automáticamente
+-- Si se borra un Temmie, volverlo a crear
 workspace.DescendantRemoved:Connect(function(obj)
 	if obj.Name == "BillboardGuiTemmie" then
 		task.wait(1)
