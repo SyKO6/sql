@@ -51,7 +51,7 @@ blur2.Parent = Lighting
 -- ===== ATMOSPHERE =====
 local atmosphere = Instance.new("Atmosphere")
 atmosphere.Name = "RealisticAtmosphere"
-atmosphere.Density = 0.4
+atmosphere.Density = 0.46
 atmosphere.Offset = 0.0
 atmosphere.Color = Color3.fromRGB(255, 255, 255)
 atmosphere.Decay = Color3.fromRGB(185, 185, 185)
@@ -65,7 +65,7 @@ cc.Name = "RealisticColorCorrection"
 cc.Brightness = -0.12
 cc.Contrast = 0.45
 cc.Saturation = 0.35
-cc.TintColor = Color3.fromRGB(255, 230, 190)
+cc.TintColor = Color3.fromRGB(240, 240, 255)
 cc.Parent = Lighting
 
 -- ===== BLOOM =====
