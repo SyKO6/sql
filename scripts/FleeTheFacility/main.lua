@@ -306,8 +306,6 @@ local function createTemmieBillboard(originalBill)
 		end
 		temmie.Adornee = attach
 	end
-
-	print("[✅] BillboardGuiTemmie creado para", tableModel:GetFullName())
 end
 
 -- Buscar todos los ComputerTable existentes
