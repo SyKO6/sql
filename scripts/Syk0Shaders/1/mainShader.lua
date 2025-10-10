@@ -65,7 +65,7 @@ cc.Name = "RealisticColorCorrection"
 cc.Brightness = -0.12
 cc.Contrast = 0.45
 cc.Saturation = 0.35
-cc.TintColor = Color3.fromRGB(242, 255, 255)
+cc.TintColor = Color3.fromRGB(255, 230, 190)
 cc.Parent = Lighting
 
 -- ===== BLOOM =====
