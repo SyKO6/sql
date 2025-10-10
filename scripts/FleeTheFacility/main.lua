@@ -38,6 +38,7 @@ task.spawn(function()
 end)
 
 --// Sistema de velocidad dinámica (Humano + Bestia)
+--// Sistema de velocidad dinámica (Humano + Bestia)
 local function enforceWalkSpeed()
 	local character = player.Character or player.CharacterAdded:Wait()
 	local humanoid = character:WaitForChild("Humanoid")
@@ -48,6 +49,9 @@ local function enforceWalkSpeed()
 	local isCrawling = tempStats:FindFirstChild("IsCrawling")
 	local isBeast = tempStats:FindFirstChild("IsBeast")
 
+	-- bandera para evitar programar múltiples delays
+	local beastSpeedPending = false
+
 	RunService.Heartbeat:Connect(function()
 		if humanoid and isCrawling and isBeast then
 			local crawling = isCrawling.Value
@@ -57,16 +61,20 @@ local function enforceWalkSpeed()
 			if not beast then
 				humanoid.WalkSpeed = crawling and crawlSpeed or normalSpeed
 			else
-				-- 🧟‍♂️ Bestia: asegurar velocidad base 18.8
+				-- 🧟‍♂️ Bestia: si tiene velocidad menor a beastSpeed, esperar 1s y luego establecer
 				if humanoid.WalkSpeed < beastSpeed then
-					task.delay(1, function()
-						if humanoid and humanoid.WalkSpeed < beastSpeed then
-							humanoid.WalkSpeed = beastSpeed
-						end
-					end)
-				elseif humanoid.WalkSpeed ~= beastSpeed then
-					humanoid.WalkSpeed = beastSpeed
+					if not beastSpeedPending then
+						beastSpeedPending = true
+						task.delay(1, function()
+							-- comprobar que el humanoide sigue existiendo y sigue con velocidad menor
+							if humanoid and humanoid.Parent and humanoid.WalkSpeed < beastSpeed then
+								humanoid.WalkSpeed = beastSpeed
+							end
+							beastSpeedPending = false
+						end)
+					end
 				end
+				-- Nota: ya no forzamos inmediatamente WalkSpeed = beastSpeed si es distinto.
 			end
 		end
 	end)
