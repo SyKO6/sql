@@ -45,12 +45,12 @@ blur.Parent = Lighting
 
 local blur2 = Instance.new("BlurEffect")
 blur2.Name = "RealisticBlur2"
-blur2.Size = 2
+blur2.Size = 3
 blur2.Parent = Lighting
 
 -- ===== ATMOSPHERE =====
 local atmosphere = Instance.new("Atmosphere")
-atmosphere.Name = "RealisticAtmosphere"
+atmosphere.Name = "Atmosphere"
 atmosphere.Density = 0.46
 atmosphere.Offset = 0.0
 atmosphere.Color = Color3.fromRGB(255, 255, 255)
