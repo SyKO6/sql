@@ -282,7 +282,7 @@ local function createTemmieBillboard(originalBill)
 	imageLabel.BackgroundTransparency = 1
 	imageLabel.Size = UDim2.new(1, 0, 1, 0)
 	imageLabel.Image = TEMMIE_IMAGE_ID
-	imageLabel.ImageTransparency = 0.1 -- 🟦 Por defecto 90% visible (0 = opaco, 1 = invisible)
+	imageLabel.ImageTransparency = 0.15 -- 🟦 Por defecto 90% visible (0 = opaco, 1 = invisible)
 	imageLabel.Parent = temmie
 
 	-- Posición igual al original, pero 1 bloque más abajo
@@ -422,7 +422,7 @@ RunService.RenderStepped:Connect(function(dt)
 						-- Aplicar transparencias inversas
 						local image = temmie:FindFirstChildWhichIsA("ImageLabel") or temmie:FindFirstChildWhichIsA("ImageButton")
 						if image then
-							image.ImageTransparency = 1 - (data.alpha * 0.9) -- límite 0.1 mínima (90% visible máximo)
+							image.ImageTransparency = 1 - (data.alpha * 0.95) -- límite 0.1 mínima (90% visible máximo)
 						end
 
 						hl.OutlineTransparency = data.alpha -- Contorno aparece al acercarse
