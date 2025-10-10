@@ -245,3 +245,101 @@ Players.PlayerAdded:Connect(function(plr)
 		createESP(plr)
 	end)
 end)
+
+
+
+
+
+--// 💾 Sistema universal autorreparable de BillboardGuiTemmie
+
+-- Función que crea y mantiene el BillboardGuiTemmie en una mesa específica
+local function ensureTemmieBillboard(table)
+	if not table:FindFirstChild("Screen") then return end
+	local screen = table.Screen
+
+	local function createTemmie()
+		local original = screen:FindFirstChild("BillboardGui")
+		if not original or not original:FindFirstChild("ImageLabel") then return end
+
+		-- Eliminar duplicados viejos
+		for _, gui in ipairs(screen:GetChildren()) do
+			if gui.Name == "BillboardGuiTemmie" then
+				gui:Destroy()
+			end
+		end
+
+		local clone = original:Clone()
+		clone.Name = "BillboardGuiTemmie"
+
+		-- Cambiar imagen
+		local img = clone:FindFirstChild("ImageLabel")
+		if img then
+			img.Image = "rbxassetid://90866842257772"
+		end
+
+		clone.Enabled = true
+		clone.Active = true
+		clone.Parent = screen
+
+		-- Mover -1 bloque abajo
+		local adornee = original.Adornee
+		if adornee and adornee:IsA("BasePart") then
+			local attach = adornee:FindFirstChild("TemmieAttachment")
+			if not attach then
+				attach = Instance.new("Attachment")
+				attach.Name = "TemmieAttachment"
+				attach.Position = Vector3.new(0, -1, 0)
+				attach.Parent = adornee
+			end
+			clone.Adornee = attach
+		end
+
+		print("[✅ Temmie Billboard creado para]", table:GetFullName())
+	end
+
+	-- Crear si no existe
+	if not screen:FindFirstChild("BillboardGuiTemmie") then
+		createTemmie()
+	end
+
+	-- Si se borra el Temmie, se recrea
+	screen.ChildRemoved:Connect(function(child)
+		if child.Name == "BillboardGuiTemmie" then
+			task.wait(0.5)
+			if not screen:FindFirstChild("BillboardGuiTemmie") then
+				createTemmie()
+			end
+		end
+	end)
+
+	-- Si se borra el original, esperar a que reaparezca y regenerar
+	screen.ChildRemoved:Connect(function(child)
+		if child.Name == "BillboardGui" then
+			task.spawn(function()
+				repeat task.wait(1) until screen:FindFirstChild("BillboardGui")
+				task.wait(0.5)
+				createTemmie()
+			end)
+		end
+	end)
+end
+
+-- Escanear todo el workspace por mesas existentes
+for _, obj in ipairs(workspace:GetDescendants()) do
+	if obj.Name == "ComputerTable" then
+		task.spawn(function()
+			task.wait(1)
+			ensureTemmieBillboard(obj)
+		end)
+	end
+end
+
+-- Detectar nuevas ComputerTable añadidas dinámicamente
+workspace.DescendantAdded:Connect(function(obj)
+	if obj.Name == "ComputerTable" then
+		task.spawn(function()
+			task.wait(1)
+			ensureTemmieBillboard(obj)
+		end)
+	end
+end)
