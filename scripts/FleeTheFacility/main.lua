@@ -209,19 +209,24 @@ local function createESP(target)
 		-- Actualizar visual  
 		highlight.OutlineColor = finalColor  
 		nameLabel.TextColor3 = finalColor  
-		-- 🧠 Obtener el BeastChance directamente del GUI del jugador
-        nameLabel.Text = string.format("%s [%s (%s)] - %.1f",
+		-- 🧠 Calcular BeastChance real (igual al del label del menú)
+        local baseChance = (
+        	target:FindFirstChild("SavedPlayerStatsModule")
+        	and target.SavedPlayerStatsModule:FindFirstChild("BeastChance")
+        	and target.SavedPlayerStatsModule.BeastChance.Value
+        ) or 0
+        
+        -- Jugadores en partida
+        local playerCount = math.max(#Players:GetPlayers(), 1)
+        
+        -- Fórmula real del BeastChance dinámico
+        local visualChance = math.clamp(baseChance + ((100 - baseChance) / playerCount), 0, 100)
+        
+        -- Actualizar el texto del name tag
+        nameLabel.Text = string.format("%s [%s (≈%.0f%%)] - %.1f",
         	target.Name,
         	beastValue and "Beast" or "Human",
-        	(
-        		target:FindFirstChild("PlayerGui")
-        		and target.PlayerGui:FindFirstChild("MenusScreenGui")
-        		and target.PlayerGui.MenusScreenGui:FindFirstChild("MainMenuWindow")
-        		and target.PlayerGui.MenusScreenGui.MainMenuWindow:FindFirstChild("Body")
-        		and target.PlayerGui.MenusScreenGui.MainMenuWindow.Body:FindFirstChild("BeastChanceFrame")
-        		and target.PlayerGui.MenusScreenGui.MainMenuWindow.Body.BeastChanceFrame:FindFirstChild("PercentageLabel")
-        		and target.PlayerGui.MenusScreenGui.MainMenuWindow.Body.BeastChanceFrame.PercentageLabel.Text
-        	) or "0%",
+        	visualChance,
         	dist
         )
   
