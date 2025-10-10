@@ -225,7 +225,7 @@ local function createESP(target)
             visualChance = math.clamp(baseChance + ((100 - baseChance) / playerCount), 0, 100)
         end
         
-        nameLabel.Text = string.format("%s [%s (%.0f%%)] - %.1f",
+        nameLabel.Text = string.format("%s [%s (≈%.0f%%)] - %.1f",
         	target.Name,
         	beastValue and "Beast" or "Human",
         	visualChance,
