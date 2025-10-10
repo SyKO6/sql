@@ -446,33 +446,37 @@ RunService.RenderStepped:Connect(function(dt)
 			end  
 		end  
 	end
-	-- 🧩 SISTEMA DE DETECCIÓN DE COLOR EN SCREEN (DESACTIVA TEMMIE Y ESP)
     local DISABLE_COLOR = Color3.fromRGB(40, 127, 71)
+    local lastColorState = {} -- almacena estado anterior para no repetir
     
-    RunService.Heartbeat:Connect(function()
-    	for tableModel, data in pairs(activeTables) do
-    		if tableModel and tableModel.Parent then
-    			local screen = tableModel:FindFirstChild("Screen")
-    			if screen and screen:IsA("BasePart") then
-    				local temmie = screen:FindFirstChild("BillboardGuiTemmie")
-    				local esp = tableModel:FindFirstChild("TableESP")
+    task.spawn(function()
+    	while task.wait(0.5) do -- cada medio segundo (puedes subir a 1 para aún menos carga)
+    		for tableModel, data in pairs(activeTables) do
+    			if tableModel and tableModel.Parent then
+    				local screen = tableModel:FindFirstChild("Screen")
+    				if screen and screen:IsA("BasePart") then
+    					local temmie = screen:FindFirstChild("BillboardGuiTemmie")
+    					local esp = tableModel:FindFirstChild("TableESP")
     
-    				local isDisabled = false
-    				local color = screen.Color
+    					-- detectar color actual
+    					local color = screen.Color
+    					local isDisabled = (
+    						math.floor(color.R * 255) == 40 and
+    						math.floor(color.G * 255) == 127 and
+    						math.floor(color.B * 255) == 71
+    					)
     
-    				-- Compara el color actual con el color objetivo
-    				if math.floor(color.R * 255) == 40
-    					and math.floor(color.G * 255) == 127
-    					and math.floor(color.B * 255) == 71 then
-    					isDisabled = true
-    				end
-    
-    				-- Aplicar el estado
-    				if temmie then
-    					temmie.Enabled = not isDisabled
-    				end
-    				if esp then
-    					esp.Enabled = not isDisabled
+    					-- evitar cambios innecesarios
+    					if lastColorState[screen] ~= isDisabled then
+    						lastColorState[screen] = isDisabled
+    						
+    						if temmie then
+    							temmie.Enabled = not isDisabled
+    						end
+    						if esp then
+    							esp.Enabled = not isDisabled
+    						end
+    					end
     				end
     			end
     		end
