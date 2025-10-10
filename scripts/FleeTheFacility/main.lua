@@ -353,9 +353,9 @@ end)
 
 -- 🌀 TEMMIE VISIBILITY + COMPUTER TABLE CONTOUR SYSTEM
 
-local MIN_DIST = 10
-local MAX_DIST = 20
-local CONTOUR_COLOR = Color3.fromRGB(0, 50, 150)
+local MIN_DIST = 15
+local MAX_DIST = 30
+local CONTOUR_COLOR = Color3.fromRGB(0, 255, 0)
 local FADE_SPEED = 0.2 -- suavidad (0.1 más lento, 0.3 más rápido)
 
 local activeTables = {}
