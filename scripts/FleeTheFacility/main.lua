@@ -448,67 +448,41 @@ RunService.RenderStepped:Connect(function(dt)
 	end
     
     -- 💡 OPTIMIZADO: Sistema sin lag de visibilidad de Temmie + contorno
+    -- 💎 OPTIMIZADO TOTAL: visibilidad Temmie + TableESP sin lag ni stutter
     local DISABLE_COLOR = Color3.fromRGB(40, 127, 71)
-    local lastColorState = {}
-    local screenConnections = {}
-    local UPDATE_INTERVAL = 0.5 -- chequeo cada 0.5 s (más fluido que 1 s, pero sin lag)
+    local lastState = {}
+    local UPDATE_INTERVAL = 3 -- una vez por segundo, ultra liviano
 
-    local function updateVisuals(screen, temmie, esp)
-        if not screen then return end
-
-        local color = screen.Color
-        local isDisabled =
-            math.floor(color.R * 255) == 40 and
-            math.floor(color.G * 255) == 127 and
-            math.floor(color.B * 255) == 71
-
-        if lastColorState[screen] == isDisabled then return end
-        lastColorState[screen] = isDisabled
-
-        if temmie then temmie.Enabled = not isDisabled end
-        if esp then esp.Enabled = not isDisabled end
+    local function isDisabledColor(color)
+        local r, g, b = math.floor(color.R * 255), math.floor(color.G * 255), math.floor(color.B * 255)
+        return (r == 40 and g == 127 and b == 71)
     end
 
-    local function connectScreen(tableModel)
+    local function updateTable(tableModel)
         local screen = tableModel:FindFirstChild("Screen")
         if not screen then return end
 
         local temmie = screen:FindFirstChild("BillboardGuiTemmie")
         local esp = tableModel:FindFirstChild("TableESP")
+        if not temmie and not esp then return end
 
-        -- Evita múltiples conexiones por screen
-        if screenConnections[screen] then return end
-        screenConnections[screen] = true
+        local disabled = isDisabledColor(screen.Color)
+        if lastState[screen] == disabled then return end
+        lastState[screen] = disabled
 
-        -- 🔁 Solo reaccionar cuando el color realmente cambie
-        screen:GetPropertyChangedSignal("Color"):Connect(function()
-            updateVisuals(screen, temmie, esp)
-        end)
+        if temmie then temmie.Enabled = not disabled end
+        if esp then esp.Enabled = not disabled end
+    end
 
-        -- 🔄 Chequeo preventivo cada medio segundo
-        task.spawn(function()
-            while screen.Parent do
-                updateVisuals(screen, temmie, esp)
-                task.wait(UPDATE_INTERVAL)
+    -- 🔁 loop global único (6 mesas no hacen nada de lag)
+    task.spawn(function()
+        while true do
+            for tableModel, _ in pairs(activeTables) do
+                if tableModel and tableModel.Parent then
+                    updateTable(tableModel)
+                end
             end
-            screenConnections[screen] = nil
-        end)
-
-        -- Estado inicial
-        updateVisuals(screen, temmie, esp)
-    end
-
-    -- Conecta todas las existentes solo una vez
-    for tableModel, _ in pairs(activeTables) do
-        connectScreen(tableModel)
-    end
-
-    -- Cuando aparezca una mesa nueva
-    workspace.DescendantAdded:Connect(function(obj)
-        if obj.Name == "ComputerTable" then
-            task.defer(function()
-                connectScreen(obj)
-            end)
+            task.wait(UPDATE_INTERVAL)
         end
     end)
 end)
