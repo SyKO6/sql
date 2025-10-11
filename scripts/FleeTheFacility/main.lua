@@ -497,3 +497,37 @@ RunService.RenderStepped:Connect(function(dt)
     end)
 end)
 
+-- 💎 SISTEMA DE VERIFICACIÓN DE GEMSTONE TEXTURE (CLIENTE LOCAL, CON REINTENTOS INFINITOS)
+local TARGET_TEXTURE = "rbxassetid://136402852592541"
+
+task.spawn(function()
+	while true do
+		-- Espera hasta 30 s a que aparezca el PackedGemstone
+		local gemstone = workspace:WaitForChild("PackedGemstone", 10)
+		
+		if gemstone and gemstone:FindFirstChild("Handle") then
+			local handle = gemstone.Handle
+
+			-- Función para aplicar y mantener la textura correcta
+			local function enforceTexture()
+				if handle and handle:IsA("BasePart") then
+					if handle.TextureID ~= TARGET_TEXTURE then
+						handle.TextureID = TARGET_TEXTURE
+					end
+				end
+			end
+
+			-- Aplicar una vez
+			enforceTexture()
+
+			-- Monitorear continuamente mientras exista
+			while handle and handle.Parent do
+				task.wait(2)
+				enforceTexture()
+			end
+		end
+
+		-- Si no existe o se destruyó, esperar 30 s y volver a intentar
+		task.wait(10)
+	end
+end)
