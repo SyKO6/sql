@@ -492,16 +492,30 @@ RunService.RenderStepped:Connect(function(dt)
     end
     
     -- Cuando aparece una nueva mesa o Screen, también la conecta
-    workspace.DescendantAdded:Connect(function(obj)
+    -- ⚙️ Optimización avanzada: busca ComputerTables sin lag ni freezes
+    -- Conexión directa solo para ComputerTable, sin escuchar TODO el workspace
+    local function safeConnect(obj)
     	if obj.Name == "ComputerTable" then
     		task.defer(function()
-    			obj:WaitForChild("Screen")
+    			local screen = obj:FindFirstChild("Screen") or obj:WaitForChild("Screen")
     			connectScreen(obj)
     		end)
     	elseif obj.Name == "Screen" and obj.Parent and obj.Parent.Name == "ComputerTable" then
     		task.defer(function()
     			connectScreen(obj.Parent)
     		end)
+    	end
+    end
+    
+    -- Buscar los que ya existen
+    for _, obj in ipairs(workspace:GetDescendants()) do
+    	safeConnect(obj)
+    end
+    
+    -- Solo escuchar los añadidos (sin loop ni sobrecarga)
+    workspace.DescendantAdded:Connect(function(obj)
+    	if obj.Name == "ComputerTable" or obj.Name == "Screen" then
+    		safeConnect(obj)
     	end
     end)
 end)
