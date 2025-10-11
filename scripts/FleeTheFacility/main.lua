@@ -447,43 +447,62 @@ RunService.RenderStepped:Connect(function(dt)
 		end  
 	end
     
-    -- 💡 OPTIMIZADO: Sistema sin lag de visibilidad de Temmie + contorno
-    -- 💎 OPTIMIZADO TOTAL: visibilidad Temmie + TableESP sin lag ni stutter
+    -- ⚡ SISTEMA ULTRAOPTIMIZADO: VISIBILIDAD TEMMIE + TABLEESP (SIN LOOP NI LAG)
     local DISABLE_COLOR = Color3.fromRGB(40, 127, 71)
-    local lastState = {}
-    local UPDATE_INTERVAL = 10 -- una vez por segundo, ultra liviano
-
+    local lastColorState = {}
+    
+    -- Función que compara si el color corresponde al de PC hackeada
     local function isDisabledColor(color)
-        local r, g, b = math.floor(color.R * 255), math.floor(color.G * 255), math.floor(color.B * 255)
-        return (r == 40 and g == 127 and b == 71)
+    	local r, g, b = math.floor(color.R * 255), math.floor(color.G * 255), math.floor(color.B * 255)
+    	return (r == 40 and g == 127 and b == 71)
     end
-
-    local function updateTable(tableModel)
-        local screen = tableModel:FindFirstChild("Screen")
-        if not screen then return end
-
-        local temmie = screen:FindFirstChild("BillboardGuiTemmie")
-        local esp = tableModel:FindFirstChild("TableESP")
-        if not temmie and not esp then return end
-
-        local disabled = isDisabledColor(screen.Color)
-        if lastState[screen] == disabled then return end
-        lastState[screen] = disabled
-
-        if temmie then temmie.Enabled = not disabled end
-        if esp then esp.Enabled = not disabled end
+    
+    -- Actualiza la visibilidad del Temmie y el ESP según el color
+    local function updateVisuals(screen, temmie, esp)
+    	if not screen then return end
+    
+    	local disabled = isDisabledColor(screen.Color)
+    	if lastColorState[screen] == disabled then return end
+    	lastColorState[screen] = disabled
+    
+    	if temmie then temmie.Enabled = not disabled end
+    	if esp then esp.Enabled = not disabled end
     end
-
-    -- 🔁 loop global único (6 mesas no hacen nada de lag)
-    task.spawn(function()
-        while true do
-            for tableModel, _ in pairs(activeTables) do
-                if tableModel and tableModel.Parent then
-                    updateTable(tableModel)
-                end
-            end
-            task.wait(UPDATE_INTERVAL)
-        end
+    
+    -- Conecta una Screen para que reaccione automáticamente al cambiar de color
+    local function connectScreen(tableModel)
+    	local screen = tableModel:FindFirstChild("Screen")
+    	if not screen then return end
+    
+    	local temmie = screen:FindFirstChild("BillboardGuiTemmie")
+    	local esp = tableModel:FindFirstChild("TableESP")
+    
+    	-- Evento instantáneo: reacciona al cambio de color sin loops
+    	screen:GetPropertyChangedSignal("Color"):Connect(function()
+    		updateVisuals(screen, temmie, esp)
+    	end)
+    
+    	-- Comprobación inicial por si ya estaba hackeada
+    	updateVisuals(screen, temmie, esp)
+    end
+    
+    -- Conecta todas las mesas activas existentes
+    for tableModel, _ in pairs(activeTables) do
+    	connectScreen(tableModel)
+    end
+    
+    -- Cuando aparece una nueva mesa o Screen, también la conecta
+    workspace.DescendantAdded:Connect(function(obj)
+    	if obj.Name == "ComputerTable" then
+    		task.defer(function()
+    			obj:WaitForChild("Screen")
+    			connectScreen(obj)
+    		end)
+    	elseif obj.Name == "Screen" and obj.Parent and obj.Parent.Name == "ComputerTable" then
+    		task.defer(function()
+    			connectScreen(obj.Parent)
+    		end)
+    	end
     end)
 end)
 
