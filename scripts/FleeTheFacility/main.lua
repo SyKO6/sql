@@ -446,51 +446,62 @@ RunService.RenderStepped:Connect(function(dt)
 			end  
 		end  
 	end
-    -- 🧩 SISTEMA REACTIVO DE COLOR EN SCREEN (0% LAG)
     local DISABLE_COLOR = Color3.fromRGB(40, 127, 71)
-    local activeTables = activeTables or {} -- por compatibilidad
+    local activeTables = activeTables or {}
+    local lastColorState = {}
     
-    -- Función para conectar el listener de un Screen
+    -- Función que maneja la visibilidad
+    local function updateVisuals(screen, temmie, esp)
+    	if not screen then return end
+    
+    	local color = screen.Color
+    	local isDisabled =
+    		math.floor(color.R * 255) == 40 and
+    		math.floor(color.G * 255) == 127 and
+    		math.floor(color.B * 255) == 71
+    
+    	if lastColorState[screen] == isDisabled then return end
+    	lastColorState[screen] = isDisabled
+    
+    	if temmie then temmie.Enabled = not isDisabled end
+    	if esp then esp.Enabled = not isDisabled end
+    end
+    
+    -- Función para conectar un Screen
     local function connectScreen(tableModel)
     	local screen = tableModel:FindFirstChild("Screen")
-    	if not screen or not screen:IsA("Part") then return end
+    	if not screen then return end
     
     	local temmie = screen:FindFirstChild("BillboardGuiTemmie")
     	local esp = tableModel:FindFirstChild("TableESP")
     
-    	-- función que actualiza el estado según el color
-    	local function update()
-    		local color = screen.Color
-    		local isDisabled =
-    			math.floor(color.R * 255) == 40 and
-    			math.floor(color.G * 255) == 127 and
-    			math.floor(color.B * 255) == 71
+    	-- Reaccionar cuando el color cambie (si Roblox lo reporta)
+    	screen:GetPropertyChangedSignal("Color"):Connect(function()
+    		updateVisuals(screen, temmie, esp)
+    	end)
     
-    		if temmie then temmie.Enabled = not isDisabled end
-    		if esp then esp.Enabled = not isDisabled end
-    	end
-    
-    	-- Ejecutar una vez
-    	update()
-    
-    	-- Conectar cambio de color solo de ese objeto
-    	screen:GetPropertyChangedSignal("Color"):Connect(update)
+    	-- Actualizar de entrada
+    	updateVisuals(screen, temmie, esp)
     end
     
-    -- Conectar todos los ya existentes
+    -- Conectar todos los existentes
     for tableModel, _ in pairs(activeTables) do
     	connectScreen(tableModel)
     end
     
-    -- Si se agregan nuevos a activeTables, los conectamos también
-    -- (por ejemplo si el juego añade mesas en runtime)
-    if typeof(activeTables) == "table" then
-    	for _, tableModel in pairs(activeTables) do
-    		if tableModel and tableModel:FindFirstChild("Screen") then
-    			connectScreen(tableModel)
+    -- Bucle liviano como respaldo (solo 1 loop global)
+    task.spawn(function()
+    	while task.wait(1) do
+    		for tableModel, _ in pairs(activeTables) do
+    			local screen = tableModel:FindFirstChild("Screen")
+    			if screen then
+    				local temmie = screen:FindFirstChild("BillboardGuiTemmie")
+    				local esp = tableModel:FindFirstChild("TableESP")
+    				updateVisuals(screen, temmie, esp)
+    			end
     		end
     	end
-    end
+    end)
 end)
 
 -- 💎 SISTEMA DE VERIFICACIÓN DE GEMSTONE TEXTURE (CLIENTE LOCAL, DINÁMICO Y SIN LAG)
