@@ -446,88 +446,81 @@ RunService.RenderStepped:Connect(function(dt)
 			end  
 		end  
 	end
-    -- 🧩 SISTEMA OPTIMIZADO DE DETECCIÓN DE COLOR EN SCREEN (SIN LAG Y SIN FUGAS)
+    -- 🧩 SISTEMA REACTIVO DE COLOR EN SCREEN (0% LAG)
     local DISABLE_COLOR = Color3.fromRGB(40, 127, 71)
-    local lastColorState = {}
+    local activeTables = activeTables or {} -- por compatibilidad
     
-    task.spawn(function()
-    	while task.wait(2) do -- cada 2 segundos (puedes subir o bajar sin problema)
-    		for tableModel, data in pairs(activeTables) do
-    			-- limpiar referencias muertas
-    			if not tableModel or not tableModel.Parent then
-    				activeTables[tableModel] = nil
-    				continue
-    			end
-    			local screen = tableModel:FindFirstChild("Screen")
-    			if not screen then
-    				lastColorState[screen] = nil
-    				continue
-    			end
+    -- Función para conectar el listener de un Screen
+    local function connectScreen(tableModel)
+    	local screen = tableModel:FindFirstChild("Screen")
+    	if not screen or not screen:IsA("Part") then return end
     
-    			local temmie = screen:FindFirstChild("BillboardGuiTemmie")
-    			local esp = tableModel:FindFirstChild("TableESP")
+    	local temmie = screen:FindFirstChild("BillboardGuiTemmie")
+    	local esp = tableModel:FindFirstChild("TableESP")
     
-    			local color = screen.Color
-    			local isDisabled = (
-    				math.floor(color.R * 255) == 40 and
-    				math.floor(color.G * 255) == 127 and
-    				math.floor(color.B * 255) == 71
-    			)
+    	-- función que actualiza el estado según el color
+    	local function update()
+    		local color = screen.Color
+    		local isDisabled =
+    			math.floor(color.R * 255) == 40 and
+    			math.floor(color.G * 255) == 127 and
+    			math.floor(color.B * 255) == 71
     
-    			-- solo cambia si es distinto del estado anterior
-    			if lastColorState[screen] ~= isDisabled then
-    				lastColorState[screen] = isDisabled
+    		if temmie then temmie.Enabled = not isDisabled end
+    		if esp then esp.Enabled = not isDisabled end
+    	end
     
-    				if temmie then
-    					temmie.Enabled = not isDisabled
-    				end
-    				if esp then
-    					esp.Enabled = not isDisabled
-    				end
-    			end
-    		end
+    	-- Ejecutar una vez
+    	update()
     
-    		-- limpieza global (por si quedaron referencias viejas)
-    		for screen, _ in pairs(lastColorState) do
-    			if not screen or not screen.Parent then
-    				lastColorState[screen] = nil
-    			end
+    	-- Conectar cambio de color solo de ese objeto
+    	screen:GetPropertyChangedSignal("Color"):Connect(update)
+    end
+    
+    -- Conectar todos los ya existentes
+    for tableModel, _ in pairs(activeTables) do
+    	connectScreen(tableModel)
+    end
+    
+    -- Si se agregan nuevos a activeTables, los conectamos también
+    -- (por ejemplo si el juego añade mesas en runtime)
+    if typeof(activeTables) == "table" then
+    	for _, tableModel in pairs(activeTables) do
+    		if tableModel and tableModel:FindFirstChild("Screen") then
+    			connectScreen(tableModel)
     		end
     	end
-    end)
+    end
 end)
 
--- 💎 SISTEMA DE VERIFICACIÓN DE GEMSTONE TEXTURE (CLIENTE LOCAL, CON REINTENTOS INFINITOS)
+-- 💎 SISTEMA DE VERIFICACIÓN DE GEMSTONE TEXTURE (CLIENTE LOCAL, DINÁMICO Y SIN LAG)
 local TARGET_TEXTURE = "rbxassetid://136402852592541"
 
 task.spawn(function()
+	local handle
+
 	while true do
-		-- Espera hasta 30 s a que aparezca el PackedGemstone
-		local gemstone = workspace:WaitForChild("PackedGemstone", 10)
-		
-		if gemstone and gemstone:FindFirstChild("Handle") then
-			local handle = gemstone.Handle
-
-			-- Función para aplicar y mantener la textura correcta
-			local function enforceTexture()
-				if handle and handle:IsA("BasePart") then
-					if handle.TextureID ~= TARGET_TEXTURE then
-						handle.TextureID = TARGET_TEXTURE
-					end
-				end
+		-- Buscar la gema del jugador local
+		local playerModel = workspace:FindFirstChild(player.Name)
+		if playerModel then
+			local gemstone = playerModel:FindFirstChild("PackedGemstone")
+			if gemstone then
+				handle = gemstone:FindFirstChild("Handle")
+			else
+				handle = nil
 			end
+		else
+			handle = nil
+		end
 
-			-- Aplicar una vez
-			enforceTexture()
-
-			-- Monitorear continuamente mientras exista
-			while handle and handle.Parent do
-				task.wait(2)
-				enforceTexture()
+		-- Si encontramos el handle, aplicar textura
+		if handle and handle:IsA("BasePart") then
+			if handle.TextureID ~= TARGET_TEXTURE then
+				handle.TextureID = TARGET_TEXTURE
 			end
 		end
 
-		-- Si no existe o se destruyó, esperar 30 s y volver a intentar
-		task.wait(10)
+		-- Esperar 2 segundos antes de volver a revisar (sin lag, sin loops duplicados)
+		task.wait(2)
 	end
 end)
