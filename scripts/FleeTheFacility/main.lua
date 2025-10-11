@@ -451,7 +451,7 @@ RunService.RenderStepped:Connect(function(dt)
     -- 💎 OPTIMIZADO TOTAL: visibilidad Temmie + TableESP sin lag ni stutter
     local DISABLE_COLOR = Color3.fromRGB(40, 127, 71)
     local lastState = {}
-    local UPDATE_INTERVAL = 3 -- una vez por segundo, ultra liviano
+    local UPDATE_INTERVAL = 10 -- una vez por segundo, ultra liviano
 
     local function isDisabledColor(color)
         local r, g, b = math.floor(color.R * 255), math.floor(color.G * 255), math.floor(color.B * 255)
