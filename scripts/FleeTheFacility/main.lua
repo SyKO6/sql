@@ -516,6 +516,22 @@ RunService.RenderStepped:Connect(function(dt)
     		end
     	end)
     end)
+    
+    -- 🧩 Verificación pasiva cada 3s por si alguna Screen se buguea
+    task.spawn(function()
+    	while task.wait(5) do
+    		for screen, _ in pairs(lastColorState) do
+    			if screen and screen.Parent then
+    				local tableModel = screen.Parent
+    				local temmie = screen:FindFirstChild("BillboardGuiTemmie")
+    				local esp = tableModel:FindFirstChild("TableESP")
+    				updateVisuals(screen, temmie, esp)
+    			else
+    				lastColorState[screen] = nil
+    			end
+    		end
+    	end
+    end)
 end)
 
 -- 💎 SISTEMA DE VERIFICACIÓN DE GEMSTONE TEXTURE (CLIENTE LOCAL, DINÁMICO Y SIN LAG)
