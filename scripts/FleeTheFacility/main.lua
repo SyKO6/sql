@@ -446,38 +446,51 @@ RunService.RenderStepped:Connect(function(dt)
 			end  
 		end  
 	end
+    -- 🧩 SISTEMA OPTIMIZADO DE DETECCIÓN DE COLOR EN SCREEN (SIN LAG Y SIN FUGAS)
     local DISABLE_COLOR = Color3.fromRGB(40, 127, 71)
-    local lastColorState = {} -- almacena estado anterior para no repetir
+    local lastColorState = {}
     
     task.spawn(function()
-    	while task.wait(2) do -- cada medio segundo (puedes subir a 1 para aún menos carga)
+    	while task.wait(2) do -- cada 2 segundos (puedes subir o bajar sin problema)
     		for tableModel, data in pairs(activeTables) do
-    			if tableModel and tableModel.Parent then
-    				local screen = tableModel:FindFirstChild("Screen")
-    				if screen and screen:IsA("BasePart") then
-    					local temmie = screen:FindFirstChild("BillboardGuiTemmie")
-    					local esp = tableModel:FindFirstChild("TableESP")
+    			-- limpiar referencias muertas
+    			if not tableModel or not tableModel.Parent then
+    				activeTables[tableModel] = nil
+    				continue
+    			end
+    			local screen = tableModel:FindFirstChild("Screen")
+    			if not screen then
+    				lastColorState[screen] = nil
+    				continue
+    			end
     
-    					-- detectar color actual
-    					local color = screen.Color
-    					local isDisabled = (
-    						math.floor(color.R * 255) == 40 and
-    						math.floor(color.G * 255) == 127 and
-    						math.floor(color.B * 255) == 71
-    					)
+    			local temmie = screen:FindFirstChild("BillboardGuiTemmie")
+    			local esp = tableModel:FindFirstChild("TableESP")
     
-    					-- evitar cambios innecesarios
-    					if lastColorState[screen] ~= isDisabled then
-    						lastColorState[screen] = isDisabled
-    						
-    						if temmie then
-    							temmie.Enabled = not isDisabled
-    						end
-    						if esp then
-    							esp.Enabled = not isDisabled
-    						end
-    					end
+    			local color = screen.Color
+    			local isDisabled = (
+    				math.floor(color.R * 255) == 40 and
+    				math.floor(color.G * 255) == 127 and
+    				math.floor(color.B * 255) == 71
+    			)
+    
+    			-- solo cambia si es distinto del estado anterior
+    			if lastColorState[screen] ~= isDisabled then
+    				lastColorState[screen] = isDisabled
+    
+    				if temmie then
+    					temmie.Enabled = not isDisabled
     				end
+    				if esp then
+    					esp.Enabled = not isDisabled
+    				end
+    			end
+    		end
+    
+    		-- limpieza global (por si quedaron referencias viejas)
+    		for screen, _ in pairs(lastColorState) do
+    			if not screen or not screen.Parent then
+    				lastColorState[screen] = nil
     			end
     		end
     	end
