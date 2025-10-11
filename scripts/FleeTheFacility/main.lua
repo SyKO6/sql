@@ -268,7 +268,7 @@ end)
 -- 🧿 Sistema de Temmie flotante solo en ComputerTable > Screen  
 local TEMMIE_IMAGE_ID = "rbxassetid://114304952664153"  
 local OFFSET_Y = -1
-local TEMMIE_SIZE = UDim2.new(0, 68, 0, 68)  
+local TEMMIE_SIZE = UDim2.new(0, 78, 0, 78)  
   
 -- Crea el Temmie debajo del BillboardGui original  
 local function createTemmieBillboard(originalBill)  
@@ -447,17 +447,17 @@ RunService.RenderStepped:Connect(function(dt)
 		end  
 	end
     
-    -- ⚡ SISTEMA ULTRAOPTIMIZADO: VISIBILIDAD TEMMIE + TABLEESP (SIN LOOP NI LAG)
+    -- ⚡ SISTEMA ULTRAOPTIMIZADO FINAL: VISIBILIDAD TEMMIE + TABLEESP SIN LAG NI FREEZE
     local DISABLE_COLOR = Color3.fromRGB(40, 127, 71)
     local lastColorState = {}
     
-    -- Función que compara si el color corresponde al de PC hackeada
+    -- 🧠 Función que compara si el color corresponde al de PC hackeada
     local function isDisabledColor(color)
     	local r, g, b = math.floor(color.R * 255), math.floor(color.G * 255), math.floor(color.B * 255)
     	return (r == 40 and g == 127 and b == 71)
     end
     
-    -- Actualiza la visibilidad del Temmie y el ESP según el color
+    -- 🧩 Actualiza la visibilidad del Temmie y el ESP según el color
     local function updateVisuals(screen, temmie, esp)
     	if not screen then return end
     
@@ -469,7 +469,7 @@ RunService.RenderStepped:Connect(function(dt)
     	if esp then esp.Enabled = not disabled end
     end
     
-    -- Conecta una Screen para que reaccione automáticamente al cambiar de color
+    -- 🔗 Conecta una Screen para que reaccione automáticamente al cambiar de color
     local function connectScreen(tableModel)
     	local screen = tableModel:FindFirstChild("Screen")
     	if not screen then return end
@@ -477,46 +477,44 @@ RunService.RenderStepped:Connect(function(dt)
     	local temmie = screen:FindFirstChild("BillboardGuiTemmie")
     	local esp = tableModel:FindFirstChild("TableESP")
     
-    	-- Evento instantáneo: reacciona al cambio de color sin loops
+    	-- si ya estaba conectada, no volver a conectar
+    	if screen:GetAttribute("Connected") then return end
+    	screen:SetAttribute("Connected", true)
+    
     	screen:GetPropertyChangedSignal("Color"):Connect(function()
     		updateVisuals(screen, temmie, esp)
     	end)
     
-    	-- Comprobación inicial por si ya estaba hackeada
+    	-- verificación inicial
     	updateVisuals(screen, temmie, esp)
     end
     
-    -- Conecta todas las mesas activas existentes
-    for tableModel, _ in pairs(activeTables) do
-    	connectScreen(tableModel)
-    end
-    
-    -- Cuando aparece una nueva mesa o Screen, también la conecta
-    -- ⚙️ Optimización avanzada: busca ComputerTables sin lag ni freezes
-    -- Conexión directa solo para ComputerTable, sin escuchar TODO el workspace
-    local function safeConnect(obj)
-    	if obj.Name == "ComputerTable" then
-    		task.defer(function()
-    			local screen = obj:FindFirstChild("Screen") or obj:WaitForChild("Screen")
-    			connectScreen(obj)
-    		end)
-    	elseif obj.Name == "Screen" and obj.Parent and obj.Parent.Name == "ComputerTable" then
-    		task.defer(function()
-    			connectScreen(obj.Parent)
-    		end)
+    -- 🧭 Detecta nuevas mesas dentro de modelos Arcade sin escanear todo el workspace
+    local function scanArcades()
+    	for _, model in ipairs(workspace:GetChildren()) do
+    		if model:IsA("Model") then
+    			for _, obj in ipairs(model:GetChildren()) do
+    				if obj.Name == "ComputerTable" then
+    					connectScreen(obj)
+    				end
+    			end
+    		end
     	end
     end
     
-    -- Buscar los que ya existen
-    for _, obj in ipairs(workspace:GetDescendants()) do
-    	safeConnect(obj)
-    end
+    -- 🔄 Conecta las mesas actuales
+    scanArcades()
     
-    -- Solo escuchar los añadidos (sin loop ni sobrecarga)
-    workspace.DescendantAdded:Connect(function(obj)
-    	if obj.Name == "ComputerTable" or obj.Name == "Screen" then
-    		safeConnect(obj)
-    	end
+    -- 👂 Escucha solo adiciones relevantes (no todo el workspace)
+    workspace.ChildAdded:Connect(function(child)
+    	if not child:IsA("Model") then return end
+    	task.defer(function()
+    		for _, obj in ipairs(child:GetChildren()) do
+    			if obj.Name == "ComputerTable" then
+    				connectScreen(obj)
+    			end
+    		end
+    	end)
     end)
 end)
 
