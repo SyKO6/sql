@@ -266,7 +266,7 @@ end)
   
   
 -- 🧿 Sistema de Temmie flotante solo en ComputerTable > Screen  
-local TEMMIE_IMAGE_ID = "rbxassetid://90866842257772"  
+local TEMMIE_IMAGE_ID = "rbxassetid://114304952664153"  
 local OFFSET_Y = -1
 local TEMMIE_SIZE = UDim2.new(0, 68, 0, 68)  
   
