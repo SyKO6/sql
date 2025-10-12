@@ -116,4 +116,4 @@ local function iniciarScript(modo)
 end
 
 -- Ejecutar el script
-iniciarScript()
+iniciarScript() -- ^q^
