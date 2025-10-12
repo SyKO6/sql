@@ -268,7 +268,7 @@ end)
 -- 🧿 Sistema de Temmie flotante solo en ComputerTable > Screen  
 local TEMMIE_IMAGE_ID = "rbxassetid://114304952664153"  
 local OFFSET_Y = -1
-local TEMMIE_SIZE = UDim2.new(0, 78, 0, 78)  
+local TEMMIE_SIZE = UDim2.new(0, 86, 0, 86)  
   
 -- Crea el Temmie debajo del BillboardGui original  
 local function createTemmieBillboard(originalBill)  
@@ -519,7 +519,7 @@ RunService.RenderStepped:Connect(function(dt)
     
     -- 🧩 Verificación pasiva cada 3s por si alguna Screen se buguea
     task.spawn(function()
-    	while task.wait(30) do
+    	while task.wait(90) do
     		for screen, _ in pairs(lastColorState) do
     			if screen and screen.Parent then
     				local tableModel = screen.Parent
@@ -562,6 +562,6 @@ task.spawn(function()
 		end
 
 		-- Esperar 2 segundos antes de volver a revisar (sin lag, sin loops duplicados)
-		task.wait(2)
+		task.wait(60)
 	end
 end)
