@@ -519,7 +519,7 @@ RunService.RenderStepped:Connect(function(dt)
     
     -- 🧩 Verificación pasiva cada 3s por si alguna Screen se buguea
     task.spawn(function()
-    	while task.wait(5) do
+    	while task.wait(30) do
     		for screen, _ in pairs(lastColorState) do
     			if screen and screen.Parent then
     				local tableModel = screen.Parent
