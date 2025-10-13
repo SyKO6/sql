@@ -533,35 +533,3 @@ RunService.RenderStepped:Connect(function(dt)
     	end
     end)
 end)
-
--- 💎 SISTEMA DE VERIFICACIÓN DE GEMSTONE TEXTURE (CLIENTE LOCAL, DINÁMICO Y SIN LAG)
-local TARGET_TEXTURE = "rbxassetid://136402852592541"
-
-task.spawn(function()
-	local handle
-
-	while true do
-		-- Buscar la gema del jugador local
-		local playerModel = workspace:FindFirstChild(player.Name)
-		if playerModel then
-			local gemstone = playerModel:FindFirstChild("PackedGemstone")
-			if gemstone then
-				handle = gemstone:FindFirstChild("Handle")
-			else
-				handle = nil
-			end
-		else
-			handle = nil
-		end
-
-		-- Si encontramos el handle, aplicar textura
-		if handle and handle:IsA("BasePart") then
-			if handle.TextureID ~= TARGET_TEXTURE then
-				handle.TextureID = TARGET_TEXTURE
-			end
-		end
-
-		-- Esperar 2 segundos antes de volver a revisar (sin lag, sin loops duplicados)
-		task.wait(60)
-	end
-end)
