@@ -12,7 +12,7 @@ local camera = workspace.CurrentCamera
 local normalSpeed = 18.8  
 local crawlSpeed = 10.8  
 local beastSpeed = 18.8  
-local fov = 80  
+local fov = 75 
   
 --// Aplicar configuración visual  
 camera.FieldOfView = fov  
@@ -266,7 +266,7 @@ end)
   
   
 -- 🧿 Sistema de Temmie flotante solo en ComputerTable > Screen  
-local TEMMIE_IMAGE_ID = "rbxassetid://114304952664153"  
+local TEMMIE_IMAGE_ID = "rbxassetid://106452528796091"  
 local OFFSET_Y = -1
 local TEMMIE_SIZE = UDim2.new(0, 86, 0, 86)  
   

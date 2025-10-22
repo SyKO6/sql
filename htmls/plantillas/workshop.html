@@ -1,0 +1,459 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>©SyKO Template ¡!</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow-y: auto;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #1e1f22;
+      color: #FFFFFF;
+    }
+
+    .top-header {
+      padding: 40px 20px 30px;
+      text-align: center;
+      background: #1E0000;
+      background-image: radial-gradient(circle, rgba(255, 255, 255, 0.29) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    .avatar {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      border: 3px solid #FF0000;
+      box-shadow: 0 0 10px rgba(155, 155, 155, 0.4);
+      object-fit: cover;
+      margin-bottom: 16px;
+    }
+
+    .social-icons {
+      margin: 10px 0 18px;
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .social-icons a {
+      background-color: #FFFFFF;
+      color: black;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 16px;
+      text-decoration: none;
+      transition: transform 0.2s ease;
+    }
+
+    .social-icons a:hover {
+      transform: scale(1.15);
+    }
+
+    .username {
+      font-size: 26px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .username span {
+      margin: 0 8px;
+      color: #00ffbb;
+    }
+
+    .bio {
+      color: #aaa;
+      font-size: 14px;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+
+    .header-section {
+      background-color: #ffffff;
+      color: #1e1f22;
+      padding: 40px 20px 20px;
+      text-align: center;
+    }
+
+    .header-section h1 {
+      margin: 0;
+      font-size: 32px;
+    }
+
+    .header-section p {
+      margin: 8px 0 0;
+      font-size: 15px;
+      color: #555;
+    }
+
+    .content-section {
+      background-color: #2b2d31;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      align-items: center;
+    }
+
+    .card {
+      background-color: #1e1f22;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+
+    .wrapper {
+      position: relative;
+      width: 64px;
+      height: 64px;
+    }
+
+    .server-icon-container {
+      width: 100%;
+      height: 100%;
+      background-color: #2b2d31;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.3s ease;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .server-icon-container:hover {
+      border-radius: 20%;
+      background-color: #3a3c42;
+    }
+
+    .server-icon {
+      width: 100%;
+      height: 100%;
+      background-image: url('https://cdn.discordapp.com/attachments/1428908809996472391/1428909488034939002/289_sin_titulo_20251017195448.png?ex=68f43729&is=68f2e5a9&hm=0d7eab02e520b16bf16a5d865b1e1471fdf985a56814d651ceaf39b305be3149&');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .notification-badge {
+      position: absolute;
+      bottom: -4px;
+      right: -4px;
+      background-color: #f23f43;
+      color: white;
+      font-size: 11px;
+      font-weight: bold;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+      z-index: 5;
+    }
+
+    .invite-card {
+      width: 480px;
+      border-radius: 10px;
+      background-color: #2b2d31;
+      color: white;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0,0,0,0.6);
+    }
+
+    .banner {
+      height: 100px;
+      background-image: url('https://cdn.discordapp.com/attachments/1428908809996472391/1428911850778660884/212_sin_titulo_20251017200510.png?ex=68f4395d&is=68f2e7dd&hm=d7d408e66fd4ba87c3cf9c49fdfaf4bf39aef81e21d073f33a4677bd9e2de1bd&');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .content {
+      padding: 16px;
+    }
+
+    .header {
+      color: #b5bac1;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .server-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .server-logo {
+      width: 50px;
+      height: 50px;
+      border-radius: 15px;
+      background-color: #000;
+      background-image: url('https://cdn.discordapp.com/attachments/1428908809996472391/1428909488034939002/289_sin_titulo_20251017195448.png?ex=68f43729&is=68f2e5a9&hm=0d7eab02e520b16bf16a5d865b1e1471fdf985a56814d651ceaf39b305be3149&');
+      background-size: cover;
+    }
+
+    .server-text {
+      flex-grow: 1;
+    }
+
+    .server-name {
+      font-size: 18px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .boost-icon {
+      font-size: 16px;
+      color: #f47fff;
+    }
+
+    .status {
+      font-size: 13px;
+      margin-top: 3px;
+      color: #b5bac1;
+    }
+
+    .status span {
+      margin-right: 15px;
+    }
+
+    .dot {
+      height: 10px;
+      width: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .online {
+      background-color: #23a55a;
+    }
+
+    .total {
+      background-color: #4e5058;
+    }
+
+    .button {
+      margin-top: 16px;
+      padding: 10px;
+      width: 100%;
+      background-color: #5865f2;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-weight: bold;
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .server-banner-full {
+      width: 100%;
+      max-width: 720px;
+      background-color: #2b2d31;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+
+    .server-header {
+      background-image: url('https://cdn.discordapp.com/attachments/1428908809996472391/1428909523036541070/212_sin_titulo_20251017195023.png?ex=68f43732&is=68f2e5b2&hm=1e17c460de4b942e3810189bf460bfed8f8ce6e65ea241e81b82c99a394d1ea5&');
+      background-size: cover;
+      border-radius: 12px;
+      background-position: center;
+      height: 260px;
+    }
+
+    .server-info,
+    .channel-list {
+      padding: 16px;
+    }
+
+    .community-badge {
+      font-size: 16px;
+      color: #f47fff;
+    }
+
+    .member-info {
+      color: #b5bac1;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .search-bar {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .search-input {
+      flex-grow: 1;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background-color: #1e1f22;
+      border: none;
+      color: white;
+      font-size: 14px;
+    }
+
+    .search-input::placeholder {
+      color: #80848e;
+    }
+
+    .member-button {
+      background-color: #1e1f22;
+      border-radius: 8px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .category {
+      color: #b5bac1;
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+
+    .channel {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      padding: 6px 0;
+      color: white;
+      cursor: pointer;
+    }
+
+    .download {
+      font-size: 14px;
+      color: #5A67FF;
+      cursor: pointer;
+    }
+
+    .channel:hover {
+      background-color: #404249;
+      border-radius: 6px;
+      padding-left: 4px;
+    }
+
+    .hash {
+      margin-right: 8px;
+      color: #b5bac1;
+    }
+
+    .credits {
+      text-align: center;
+      padding: 25px;
+      background-color: #111;
+      font-size: 14px;
+      color: #ccc;
+      margin-bottom: 0;
+    }
+
+    .credits a {
+      color: #ccc;
+      text-decoration: none;
+      margin: 0 6px;
+    }
+
+    .credits a:hover {
+      text-decoration: underline;
+    }
+
+    .server-icon-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+  </style>
+  <script src="https://kit.fontawesome.com/4e7b38aa09.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <section class="top-header">
+      <img class="avatar" src="https://cdn.discordapp.com/attachments/1428908809996472391/1428910114286604470/2a39f2c3d623ce06b06a1ca0280ea287.jpg?ex=68f437bf&is=68f2e63f&hm=28dd3410b009967a9387a80804d586c98f0aae42d5f42ce472abb9c751c142df&" alt="Syko Avatar">
+    <div class="username">Syk0</div>
+    <p class="bio"><strong>Diseñador</strong> con pasión por el arte digital y el desarrollo comunitario.</p>
+  </section>
+
+  <section class="header-section">
+    <h1>Design Preview ✩～</h1>
+    <p>Vista previa de mis servicios como diseñador.</p>
+  </section>
+
+  <section class="content-section">
+    <div class="card server-icon-wrapper">
+      <div class="wrapper">
+        <div class="server-icon-container">
+          <div class="server-icon"></div>
+        </div>
+        <div class="notification-badge">666</div>
+      </div>
+      <div class="invite-card">
+        <div class="banner"></div>
+        <div class="content">
+          <div class="header">ENVIASTE UNA INVITACIÓN PARA UNIRTE A UN SERVIDOR</div>
+          <div class="server-info">
+            <div class="server-logo"></div>
+            <div class="server-text">
+              <div class="server-name">
+                Zarion <span class="boost-icon"></span>
+              </div>
+              <div class="status">
+                <span><span class="dot online"></span> 666 en línea</span>
+                <span><span class="dot total"></span> 666 miembros</span>
+              </div>
+            </div>
+          </div>
+          <button class="button" disabled>Te uniste</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card server-banner-full">
+      <div class="server-header"></div>
+      <div class="server-info">
+        <div class="server-name">
+          Zarion <span class="community-badge">★</span>
+        </div>
+        <div class="member-info">
+          666 miembros · Comunidad
+        </div>
+        <div class="search-bar">
+          <input class="search-input" type="text" placeholder="Buscar">
+          <div class="member-button">✩～</div>
+        </div>
+      </div>
+      <div class="channel-list">
+        <div class="category">CATEGORY TEMPLATE</div>
+        <div class="channel">
+          <span class="hash">#</span> 👋 | channel-template
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="credits">
+    ©Syk0  | @Dayron Custom - 2025  | 
+    <a href="https://discord.gg/rqwaQzFVkM">Términos y condiciones</a>  |
+    <a href="https://discord.gg/rqwaQzFVkM">  Comunidad</a>  | 
+    <a href="https://drive.google.com/file/d/19qPdUPUo_7-NKmiQNCjDhVbsCClr7Y8c/view?usp=drivesdk">  <span class="download"><strong>Descargar</strong></span></a>
+  </footer>
+</body>
+</html>
