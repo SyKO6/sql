@@ -1,159 +1,147 @@
---// SHIFT LOCK CONTROLLER + CAMERA FIX + TOAST ANIMADO
+--// SHIFT LOCK MANAGER + TOAST NOTIFICATION UI
+-- Pega este script en StarterPlayerScripts o ejecútalo como LocalScript
 
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
+local StarterGui = game:GetService("StarterGui")
 
 local player = Players.LocalPlayer
-local camera = workspace.CurrentCamera
+local playerGui = player:WaitForChild("PlayerGui")
 
--- Config deseada
-local DESIRED_FOV = 75
-local MAX_ZOOM = 1000
+-- CONFIG
+local FOV = 75
 local MIN_ZOOM = 0.5
+local MAX_ZOOM = 1000
+local TOAST_DURATION = 5
 
--- Estado persistente de Shift Lock
-local forceShiftLock = false
-
--- Mantener configuraciones
-local function enforceCameraSettings()
-	-- Cámara clásica y libre
-	if player.CameraMode ~= Enum.CameraMode.Classic then
-		player.CameraMode = Enum.CameraMode.Classic
-	end
-
-	-- Invisicam
-	if player.DevCameraOcclusionMode ~= Enum.DevCameraOcclusionMode.Invisicam then
-		player.DevCameraOcclusionMode = Enum.DevCameraOcclusionMode.Invisicam
-	end
-
-	-- Zoom libre
-	if player.CameraMaxZoomDistance ~= MAX_ZOOM then
-		player.CameraMaxZoomDistance = MAX_ZOOM
-	end
-	if player.CameraMinZoomDistance ~= MIN_ZOOM then
-		player.CameraMinZoomDistance = MIN_ZOOM
-	end
-
-	-- FOV mínimo 75
-	if camera.FieldOfView < DESIRED_FOV then
-		camera.FieldOfView = DESIRED_FOV
-	end
-
-	-- Sin bloqueo en primera persona
-	if player.DevComputerCameraMovementMode == Enum.DevComputerCameraMovementMode.FirstPerson then
-		player.DevComputerCameraMovementMode = Enum.DevComputerCameraMovementMode.Classic
-	end
-
-	-- Si el ShiftLock debe estar activo y algo lo cambió → reactivar
-	if forceShiftLock and not player.DevEnableMouseLock then
-		player.DevEnableMouseLock = true
-	end
+-- // == FUNCIONES BASE == //
+local function fixCamera()
+	local cam = workspace.CurrentCamera
+	if not cam then return end
+	if cam.FieldOfView < FOV then cam.FieldOfView = FOV end
+	player.CameraMode = Enum.CameraMode.Classic
+	player.DevCameraOcclusionMode = Enum.DevCameraOcclusionMode.Invisicam
+	player.CameraMinZoomDistance = MIN_ZOOM
+	player.CameraMaxZoomDistance = MAX_ZOOM
+	player.DevEnableMouseLock = true
 end
 
--- Crear GUI de notificación si no existe
-local function createToastGui()
-	local screenGui = Instance.new("ScreenGui")
-	screenGui.Name = "ToastGui"
-	screenGui.ResetOnSpawn = false
-	screenGui.IgnoreGuiInset = true
-	screenGui.Parent = player:WaitForChild("PlayerGui")
-	return screenGui
+-- shiftlock state
+local shiftLockEnabled = player.DevEnableMouseLock and UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter
+
+local function setShiftLock(state)
+	player.DevEnableMouseLock = true
+	UserInputService.MouseBehavior = state and Enum.MouseBehavior.LockCenter or Enum.MouseBehavior.Default
 end
 
-local toastGui = player:WaitForChild("PlayerGui"):FindFirstChild("ToastGui") or createToastGui()
+--// == NOTIFICACIÓN == //
+local function showToast(title, color)
+	local ScreenGui = Instance.new("ScreenGui")
+	ScreenGui.Name = "ToastUI"
+	ScreenGui.Parent = playerGui
 
--- Mostrar notificación animada
-local function showToast(title, message, color)
-	local frame = Instance.new("Frame")
-	frame.Size = UDim2.new(0, 270, 0, 65)
-	frame.Position = UDim2.new(0, -300, 1, -100)
-	frame.BackgroundColor3 = color
-	frame.BackgroundTransparency = 0.1
-	frame.BorderSizePixel = 0
-	frame.Parent = toastGui
-	frame.ClipsDescendants = true
-	frame.ZIndex = 10
-	frame.AnchorPoint = Vector2.new(0, 1)
+	local Frame = Instance.new("Frame")
+	Frame.AnchorPoint = Vector2.new(0, 1)
+	Frame.Position = UDim2.new(0, 20, 1, -20)
+	Frame.Size = UDim2.new(0, 280, 0, 60)
+	Frame.BackgroundColor3 = color
+	Frame.BackgroundTransparency = 0.1
+	Frame.BorderSizePixel = 0
+	Frame.Visible = false
+	Frame.Parent = ScreenGui
+	Frame.ClipsDescendants = true
 
-	local corner = Instance.new("UICorner", frame)
-	corner.CornerRadius = UDim.new(0, 10)
+	local Corner = Instance.new("UICorner")
+	Corner.CornerRadius = UDim.new(0, 10)
+	Corner.Parent = Frame
 
-	local titleLabel = Instance.new("TextLabel")
-	titleLabel.Size = UDim2.new(1, -10, 0, 25)
-	titleLabel.Position = UDim2.new(0, 10, 0, 5)
-	titleLabel.BackgroundTransparency = 1
-	titleLabel.Font = Enum.Font.GothamBold
-	titleLabel.TextSize = 20
-	titleLabel.TextColor3 = Color3.new(1, 1, 1)
-	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-	titleLabel.Text = title
-	titleLabel.Parent = frame
+	local Label = Instance.new("TextLabel")
+	Label.Size = UDim2.new(1, -40, 1, -15)
+	Label.Position = UDim2.new(0, 10, 0, 5)
+	Label.BackgroundTransparency = 1
+	Label.Font = Enum.Font.GothamBold
+	Label.TextScaled = true
+	Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Label.TextXAlignment = Enum.TextXAlignment.Left
+	Label.Text = title
+	Label.Parent = Frame
 
-	local messageLabel = Instance.new("TextLabel")
-	messageLabel.Size = UDim2.new(1, -10, 0, 25)
-	messageLabel.Position = UDim2.new(0, 10, 0, 30)
-	messageLabel.BackgroundTransparency = 1
-	messageLabel.Font = Enum.Font.Gotham
-	messageLabel.TextSize = 16
-	messageLabel.TextColor3 = Color3.new(1, 1, 1)
-	messageLabel.TextXAlignment = Enum.TextXAlignment.Left
-	messageLabel.Text = message
-	messageLabel.Parent = frame
+	local CloseBtn = Instance.new("TextButton")
+	CloseBtn.Size = UDim2.new(0, 25, 0, 25)
+	CloseBtn.Position = UDim2.new(1, -30, 0, 5)
+	CloseBtn.Text = "✕"
+	CloseBtn.Font = Enum.Font.GothamBold
+	CloseBtn.TextScaled = true
+	CloseBtn.BackgroundTransparency = 1
+	CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	CloseBtn.Parent = Frame
 
-	frame.BackgroundTransparency = 1
-	titleLabel.TextTransparency = 1
-	messageLabel.TextTransparency = 1
+	local Bar = Instance.new("Frame")
+	Bar.Size = UDim2.new(1, 0, 0, 4)
+	Bar.Position = UDim2.new(0, 0, 1, -4)
+	Bar.BackgroundColor3 = Color3.fromRGB(255,255,255)
+	Bar.BorderSizePixel = 0
+	Bar.Parent = Frame
 
-	-- Animación entrada
-	local tweenIn = TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-		Position = UDim2.new(0, 20, 1, -20),
-		BackgroundTransparency = 0.1
-	})
-	local fadeInTitle = TweenService:Create(titleLabel, TweenInfo.new(0.5), {TextTransparency = 0})
-	local fadeInMsg = TweenService:Create(messageLabel, TweenInfo.new(0.5), {TextTransparency = 0})
+	local Corner2 = Instance.new("UICorner")
+	Corner2.CornerRadius = UDim.new(0, 4)
+	Corner2.Parent = Bar
 
-	tweenIn:Play()
-	fadeInTitle:Play()
-	fadeInMsg:Play()
+	-- ping sound
+	local sound = Instance.new("Sound")
+	sound.SoundId = "rbxassetid://9118823102"
+	sound.Volume = 0.3
+	sound.PlayOnRemove = true
+	sound.Parent = ScreenGui
+	sound:Destroy()
 
-	task.wait(3)
+	-- animation
+	Frame.Position = UDim2.new(0, -300, 1, -20)
+	Frame.Visible = true
+	Frame:TweenPosition(UDim2.new(0, 20, 1, -20), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.35, true)
 
-	-- Animación salida
-	local tweenOut = TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
-		Position = UDim2.new(0, -300, 1, -20),
-		BackgroundTransparency = 1
-	})
-	local fadeOutTitle = TweenService:Create(titleLabel, TweenInfo.new(0.5), {TextTransparency = 1})
-	local fadeOutMsg = TweenService:Create(messageLabel, TweenInfo.new(0.5), {TextTransparency = 1})
+	local start = tick()
+	local running = true
 
-	tweenOut:Play()
-	fadeOutTitle:Play()
-	fadeOutMsg:Play()
+	CloseBtn.MouseButton1Click:Connect(function()
+		running = false
+	end)
 
-	tweenOut.Completed:Wait()
-	frame:Destroy()
+	task.spawn(function()
+		while running and tick() - start < TOAST_DURATION do
+			local t = 1 - ((tick() - start) / TOAST_DURATION)
+			Bar.Size = UDim2.new(t, 0, 0, 4)
+			task.wait(0.05)
+		end
+		Frame:TweenPosition(UDim2.new(0, -300, 1, -20), Enum.EasingDirection.In, Enum.EasingStyle.Quad, 0.3, true)
+		task.wait(0.3)
+		ScreenGui:Destroy()
+	end)
 end
 
--- Cambiar Shift Lock manualmente
-local function toggleShiftLock()
-	forceShiftLock = not forceShiftLock
-	player.DevEnableMouseLock = forceShiftLock
-
-	if forceShiftLock then
-		showToast("✅ Shift Lock", "Activado permanentemente.", Color3.fromRGB(46, 204, 113))
-	else
-		showToast("❌ Shift Lock", "Desactivado permanentemente.", Color3.fromRGB(231, 76, 60))
-	end
-end
-
--- Detectar comando en el chat
+--// == COMANDO CHAT == //
 player.Chatted:Connect(function(msg)
-	if msg:lower() == ".sh" then
-		toggleShiftLock()
+	msg = msg:lower()
+	if msg == ".sh" then
+		shiftLockEnabled = not shiftLockEnabled
+		setShiftLock(shiftLockEnabled)
+		showToast(
+			shiftLockEnabled and "Shift Lock Activado" or "Shift Lock Desactivado",
+			shiftLockEnabled and Color3.fromRGB(0, 200, 255) or Color3.fromRGB(255, 100, 100)
+		)
 	end
 end)
 
--- Mantener cámara y ShiftLock estables
-RunService.Heartbeat:Connect(enforceCameraSettings)
-enforceCameraSettings()
+--// == PROTECCIÓN CONTINUA == //
+RunService.Heartbeat:Connect(function()
+	fixCamera()
+	if player.DevEnableMouseLock ~= true then
+		player.DevEnableMouseLock = true
+	end
+	if UserInputService.MouseBehavior ~= Enum.MouseBehavior.LockCenter and shiftLockEnabled then
+		UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+	end
+end)
+
+fixCamera()
