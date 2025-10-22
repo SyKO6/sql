@@ -1,7 +1,11 @@
--- ShiftLock + ToastService (LocalScript) - Pegar en StarterPlayerScripts
--- Provee: .sh chat toggle, protección de cámara, toasts stack (max 2), BindableEvent para otras notifs
+-- ShiftLock + ToastService (final) - Pegar en StarterPlayerScripts
+-- Features:
+--  - .sh toggles Shift Lock (PC real + mobile simulated)
+--  - camera shoulder Scriptable while shift lock active
+--  - protects FOV (>=75), Invisicam, zoom [0.5,1000]
+--  - toast notifications bottom-left, stack max 2, ping sound once per toast
+--  - ToastServiceEvent BindableEvent in PlayerGui to fire toasts from other scripts
 
--- Servicios
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -11,350 +15,348 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local camera = workspace.CurrentCamera
 
--- Config
+-- ===== CONFIG =====
 local DESIRED_FOV = 75
 local MIN_ZOOM = 0.5
 local MAX_ZOOM = 1000
 local TOAST_DURATION = 5
-local TOAST_WIDTH = 360
-local TOAST_HEIGHT = 84
+local TOAST_WIDTH = 380
+local TOAST_HEIGHT = 88
 local TOAST_MARGIN = 12
 local MAX_STACK = 2
-local PING_SOUND_ID = "rbxassetid://7149516992" -- puedes cambiar
+local PING_SOUND_ID = "rbxassetid://7149516992"
 
--- Estado
+-- shift lock / camera config
 local shiftLockEnabled = false
 local mobileMode = UserInputService.TouchEnabled
 local nextToastId = 0
+local activeToasts = {} -- ordered list, oldest first
 
--- Tabla de toasts activos (orden: 1 = más vieja inferior)
-local activeToasts = {}
+-- shoulder camera offsets & sensitivities
+local shoulderOffset = Vector3.new(1.0, 1.4, -2.2) -- tweakable
+local mouseSensitivityPC = 0.18
+local touchSensitivity = 0.6
 
--- Crear contenedor de toasts en PlayerGui si no existe
-local function ensureToastContainer()
-	if not playerGui:FindFirstChild("ToastServiceGui") then
-		local sg = Instance.new("ScreenGui")
-		sg.Name = "ToastServiceGui"
-		sg.ResetOnSpawn = false
-		sg.IgnoreGuiInset = true
-		sg.Parent = playerGui
+-- ===== HELPERS =====
+local function clamp(n, a, b) if n < a then return a elseif n > b then return b else return n end end
 
-		local holder = Instance.new("Frame")
-		holder.Name = "ToastHolder"
-		holder.AnchorPoint = Vector2.new(0, 1)
-		holder.Position = UDim2.new(0, 20, 1, -20) -- bottom-left start
-		holder.Size = UDim2.new(0, TOAST_WIDTH, 0, 0)
-		holder.BackgroundTransparency = 1
-		holder.Parent = sg
-	end
-	return playerGui.ToastServiceGui.ToastHolder
-end
-
--- Mantener cámara/config cada frame
 local function enforceCameraSettings()
-	if not camera then camera = workspace.CurrentCamera end
-	if not camera then return end
+    if not camera then camera = workspace.CurrentCamera end
+    if not camera then return end
 
-	-- FOV (solo si es menor)
-	if camera.FieldOfView < DESIRED_FOV then camera.FieldOfView = DESIRED_FOV end
+    -- FOV: only set if less than desired
+    if camera.FieldOfView < DESIRED_FOV then camera.FieldOfView = DESIRED_FOV end
 
-	-- camera mode
-	if player.CameraMode ~= Enum.CameraMode.Classic then player.CameraMode = Enum.CameraMode.Classic end
-	if player.DevCameraOcclusionMode ~= Enum.DevCameraOcclusionMode.Invisicam then
-		player.DevCameraOcclusionMode = Enum.DevCameraOcclusionMode.Invisicam
-	end
+    if player.CameraMode ~= Enum.CameraMode.Classic then player.CameraMode = Enum.CameraMode.Classic end
+    if player.DevCameraOcclusionMode ~= Enum.DevCameraOcclusionMode.Invisicam then
+        player.DevCameraOcclusionMode = Enum.DevCameraOcclusionMode.Invisicam
+    end
 
-	-- zoom
-	if player.CameraMinZoomDistance ~= MIN_ZOOM then player.CameraMinZoomDistance = MIN_ZOOM end
-	if player.CameraMaxZoomDistance ~= MAX_ZOOM then player.CameraMaxZoomDistance = MAX_ZOOM end
+    if player.CameraMinZoomDistance ~= MIN_ZOOM then player.CameraMinZoomDistance = MIN_ZOOM end
+    if player.CameraMaxZoomDistance ~= MAX_ZOOM then player.CameraMaxZoomDistance = MAX_ZOOM end
 end
 
--- Helpers UI tween
-local function tween(obj, props, time, style, dir)
-	style = style or Enum.EasingStyle.Quad
-	dir = dir or Enum.EasingDirection.Out
-	return TweenService:Create(obj, TweenInfo.new(time, style, dir), props)
+local function tween(obj, props, time)
+    return TweenService:Create(obj, TweenInfo.new(time, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), props)
 end
 
--- Crear y mostrar toast; devuelve id
+-- ===== TOAST SERVICE =====
+local function ensureToastHolder()
+    if not playerGui:FindFirstChild("ToastServiceGui") then
+        local sg = Instance.new("ScreenGui")
+        sg.Name = "ToastServiceGui"
+        sg.ResetOnSpawn = false
+        sg.IgnoreGuiInset = true
+        sg.Parent = playerGui
+
+        local holder = Instance.new("Frame")
+        holder.Name = "ToastHolder"
+        holder.AnchorPoint = Vector2.new(0, 1)
+        holder.Position = UDim2.new(0, 20, 1, -20) -- bottom-left
+        holder.Size = UDim2.new(0, TOAST_WIDTH, 0, 0)
+        holder.BackgroundTransparency = 1
+        holder.Parent = sg
+    end
+    return playerGui.ToastServiceGui.ToastHolder
+end
+
+-- params: {title=string, text=string (optional), color=Color3, duration=number (optional)}
 local function createToast(params)
-	-- params: {title = string, color = Color3, duration = number (optional)}
-	local title = params.title or "Notificación"
-	local color = params.color or Color3.fromRGB(0, 200, 255)
-	local duration = params.duration or TOAST_DURATION
+    params = params or {}
+    local title = params.title or "Notification"
+    local text = params.text or ""
+    local color = params.color or Color3.fromRGB(0,200,255)
+    local duration = params.duration or TOAST_DURATION
 
-	local holder = ensureToastContainer()
+    local holder = ensureToastHolder()
 
-	-- Si ya hay MAX_STACK toasts, eliminar la más vieja (index 1)
-	if #activeToasts >= MAX_STACK then
-		local oldest = table.remove(activeToasts, 1)
-		if oldest and oldest.gui then
-			-- anim out then destroy
-			tween(oldest.gui, {Position = UDim2.new(0, -TOAST_WIDTH - 50, 0, 0), BackgroundTransparency = 1}, 0.25):Play()
-			task.delay(0.28, function() if oldest.gui and oldest.gui.Parent then oldest.gui.Parent:Destroy() end end)
-		end
-	end
+    -- if full, remove oldest
+    if #activeToasts >= MAX_STACK then
+        local oldest = table.remove(activeToasts, 1)
+        if oldest and oldest.gui and oldest.gui.Parent then
+            -- animate out then destroy
+            oldest.gui:TweenPosition(UDim2.new(0, -TOAST_WIDTH - 50, 0, 0), Enum.EasingDirection.In, Enum.EasingStyle.Quad, 0.25, true)
+            task.delay(0.28, function()
+                if oldest.gui and oldest.gui.Parent then oldest.gui.Parent:Destroy() end
+            end)
+        end
+    end
 
-	-- crear frame principal
-	local toastGui = Instance.new("Frame")
-	toastGui.Name = "Toast_" .. tostring(nextToastId)
-	toastGui.Size = UDim2.new(0, TOAST_WIDTH, 0, TOAST_HEIGHT)
-	toastGui.BackgroundColor3 = color
-	toastGui.BackgroundTransparency = 1 -- start hidden
-	toastGui.BorderSizePixel = 0
-	toastGui.Position = UDim2.new(0, -TOAST_WIDTH - 50, 0, 0) -- start off-screen (holder local coords)
-	toastGui.AnchorPoint = Vector2.new(0, 0)
-	toastGui.Parent = holder
-	toastGui.ClipsDescendants = true
+    -- main frame (white with left colored strip)
+    local guiFrame = Instance.new("Frame")
+    guiFrame.Name = "Toast_" .. tostring(nextToastId + 1)
+    guiFrame.Size = UDim2.new(0, TOAST_WIDTH, 0, TOAST_HEIGHT)
+    guiFrame.Position = UDim2.new(0, -TOAST_WIDTH - 50, 0, 0) -- start off holder
+    guiFrame.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    guiFrame.BorderSizePixel = 0
+    guiFrame.Parent = holder
+    guiFrame.ClipsDescendants = true
 
-	-- rounded corners
-	local corner = Instance.new("UICorner", toastGui)
-	corner.CornerRadius = UDim.new(0, 14)
+    -- rounded corners
+    local corner = Instance.new("UICorner", guiFrame)
+    corner.CornerRadius = UDim.new(0, 14)
 
-	-- title label (big)
-	local titleLabel = Instance.new("TextLabel", toastGui)
-	titleLabel.Name = "Title"
-	titleLabel.BackgroundTransparency = 1
-	titleLabel.Position = UDim2.new(0, 18, 0, 12)
-	titleLabel.Size = UDim2.new(1, -56, 0, 36)
-	titleLabel.Font = Enum.Font.GothamBold
-	titleLabel.TextSize = 24
-	titleLabel.TextColor3 = Color3.new(1,1,1)
-	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-	titleLabel.TextYAlignment = Enum.TextYAlignment.Top
-	titleLabel.Text = title
+    -- left colored strip
+    local strip = Instance.new("Frame", guiFrame)
+    strip.Size = UDim2.new(0, 14, 1, 0)
+    strip.Position = UDim2.new(0, 0, 0, 0)
+    strip.BackgroundColor3 = color
+    strip.BorderSizePixel = 0
+    local sCorner = Instance.new("UICorner", strip)
+    sCorner.CornerRadius = UDim.new(0, 14)
 
-	-- progress bar container (thin)
-	local progress = Instance.new("Frame", toastGui)
-	progress.Name = "Progress"
-	progress.Size = UDim2.new(1, -28, 0, 6)
-	progress.Position = UDim2.new(0, 14, 1, -12)
-	progress.BackgroundTransparency = 0.25
-	progress.BackgroundColor3 = Color3.fromRGB(255,255,255)
-	progress.BorderSizePixel = 0
-	local progressCorner = Instance.new("UICorner", progress)
-	progressCorner.CornerRadius = UDim.new(0, 4)
+    -- header label
+    local header = Instance.new("TextLabel", guiFrame)
+    header.BackgroundTransparency = 1
+    header.Position = UDim2.new(0, 28, 0, 6)
+    header.Size = UDim2.new(1, -56, 0, 20)
+    header.Font = Enum.Font.GothamBold
+    header.TextSize = 14
+    header.Text = "NOTIFICATION"
+    header.TextColor3 = Color3.fromRGB(40,40,40)
+    header.TextXAlignment = Enum.TextXAlignment.Left
 
-	-- inner bar
-	local inner = Instance.new("Frame", progress)
-	inner.Name = "Inner"
-	inner.Size = UDim2.new(1, 0, 1, 0)
-	inner.Position = UDim2.new(0, 0, 0, 0)
-	inner.BackgroundColor3 = Color3.fromRGB(255,255,255)
-	inner.BorderSizePixel = 0
-	local innerCorner = Instance.new("UICorner", inner)
-	innerCorner.CornerRadius = UDim.new(0, 4)
+    -- title area
+    local titleLabel = Instance.new("TextLabel", guiFrame)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Position = UDim2.new(0, 28, 0, 26)
+    titleLabel.Size = UDim2.new(1, -64, 0, 36)
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 20
+    titleLabel.Text = title
+    titleLabel.TextColor3 = Color3.fromRGB(20,20,20)
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-	-- close button
-	local closeBtn = Instance.new("TextButton", toastGui)
-	closeBtn.Name = "Close"
-	closeBtn.Size = UDim2.new(0, 36, 0, 36)
-	closeBtn.Position = UDim2.new(1, -46, 0, 12)
-	closeBtn.Text = "✕"
-	closeBtn.Font = Enum.Font.GothamBold
-	closeBtn.TextSize = 20
-	closeBtn.TextColor3 = Color3.new(1,1,1)
-	closeBtn.BackgroundTransparency = 1
+    -- optional subtext
+    if text and text ~= "" then
+        local sub = Instance.new("TextLabel", guiFrame)
+        sub.BackgroundTransparency = 1
+        sub.Position = UDim2.new(0, 28, 0, 56)
+        sub.Size = UDim2.new(1, -64, 0, 18)
+        sub.Font = Enum.Font.Gotham
+        sub.TextSize = 14
+        sub.Text = text
+        sub.TextColor3 = Color3.fromRGB(100,100,100)
+        sub.TextXAlignment = Enum.TextXAlignment.Left
+    end
 
-	-- sound ping
-	if PING_SOUND_ID and PING_SOUND_ID ~= "" then
-		local s = Instance.new("Sound", toastGui)
-		s.SoundId = PING_SOUND_ID
-		s.Volume = 0.35
-		s:Play()
-		task.delay(0.8, function() if s then s:Destroy() end end)
-	end
+    -- close button
+    local closeBtn = Instance.new("TextButton", guiFrame)
+    closeBtn.Size = UDim2.new(0, 36, 0, 36)
+    closeBtn.Position = UDim2.new(1, -46, 0, 10)
+    closeBtn.Text = "✕"
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.TextSize = 18
+    closeBtn.TextColor3 = Color3.fromRGB(80,80,80)
+    closeBtn.BackgroundTransparency = 1
 
-	-- tween in (slide + fade)
-	toastGui.BackgroundTransparency = 1
-	titleLabel.TextTransparency = 1
-	inner.Size = UDim2.new(1,0,1,0)
+    -- progress bar background + fill
+    local progressBg = Instance.new("Frame", guiFrame)
+    progressBg.Size = UDim2.new(1, -32, 0, 6)
+    progressBg.Position = UDim2.new(0, 16, 1, -12)
+    progressBg.BackgroundColor3 = Color3.fromRGB(230,230,230)
+    progressBg.BorderSizePixel = 0
+    local pbCorner = Instance.new("UICorner", progressBg)
+    pbCorner.CornerRadius = UDim.new(0, 4)
 
-	local tIn = tween(toastGui, {Position = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 0}, 0.35)
-	local tTitle = tween(titleLabel, {TextTransparency = 0}, 0.35)
-	tIn:Play(); tTitle:Play()
+    local progressFill = Instance.new("Frame", progressBg)
+    progressFill.Size = UDim2.new(1, 0, 1, 0)
+    progressFill.Position = UDim2.new(0, 0, 0, 0)
+    progressFill.BackgroundColor3 = color
+    progressFill.BorderSizePixel = 0
+    local pfCorner = Instance.new("UICorner", progressFill)
+    pfCorner.CornerRadius = UDim.new(0, 4)
 
-	-- push existing toasts up
-	for i = 1, #activeToasts do
-		local entry = activeToasts[i]
-		if entry and entry.gui then
-			local targetY = (TOAST_HEIGHT + TOAST_MARGIN) * i
-			entry.gui:TweenPosition(UDim2.new(0, 0, 0, targetY), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true)
-		end
-	end
+    -- play ping only once per toast
+    if PING_SOUND_ID and PING_SOUND_ID ~= "" then
+        local s = Instance.new("Sound", guiFrame)
+        s.SoundId = PING_SOUND_ID
+        s.Volume = 0.6
+        s:Play()
+        task.delay(1.2, function() pcall(function() s:Destroy() end) end)
+    end
 
-	-- add to activeToasts at end
-	nextToastId = nextToastId + 1
-	local thisId = nextToastId
-	table.insert(activeToasts, {id = thisId, gui = toastGui})
+    -- animate in
+    local tIn = tween(guiFrame, {Position = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 0}, 0.36)
+    tIn:Play()
 
-	-- progress coroutine & auto-remove
-	local start = tick()
-	local alive = true
+    -- push existing toasts upward (stack)
+    for i = 1, #activeToasts do
+        local ent = activeToasts[i]
+        if ent and ent.gui then
+            local targetY = (TOAST_HEIGHT + TOAST_MARGIN) * i
+            ent.gui:TweenPosition(UDim2.new(0, 0, 0, targetY), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.24, true)
+        end
+    end
 
-	-- close handling
-	closeBtn.MouseButton1Click:Connect(function()
-		alive = false
-	end)
+    -- register
+    nextToastId = nextToastId + 1
+    local thisId = nextToastId
+    table.insert(activeToasts, {id = thisId, gui = guiFrame})
 
-	task.spawn(function()
-		while alive and tick() - start < duration do
-			local t = 1 - ((tick() - start) / duration)
-			inner.Size = UDim2.new(t, 0, 1, 0)
-			task.wait(0.03)
-		end
+    -- progress loop & auto remove
+    local start = tick()
+    local alive = true
+    closeBtn.MouseButton1Click:Connect(function() alive = false end)
 
-		-- remove this toast
-		alive = false
-		-- animate out
-		tween(toastGui, {Position = UDim2.new(0, -TOAST_WIDTH - 50, 0, 0), BackgroundTransparency = 1}, 0.28):Play()
-		task.wait(0.3)
-		-- destroy and remove from activeToasts
-		for i, v in ipairs(activeToasts) do
-			if v.id == thisId then
-				table.remove(activeToasts, i)
-				break
-			end
-		end
-		if toastGui and toastGui.Parent then toastGui:Destroy() end
+    task.spawn(function()
+        while alive and tick() - start < duration do
+            local t = 1 - ((tick() - start) / duration)
+            progressFill.Size = UDim2.new(t, 0, 1, 0)
+            task.wait(0.03)
+        end
+        alive = false
+        -- animate out
+        tween(guiFrame, {Position = UDim2.new(0, -TOAST_WIDTH - 50, 0, 0), BackgroundTransparency = 1}, 0.28):Play()
+        task.wait(0.32)
+        -- remove from activeToasts
+        for i = 1, #activeToasts do
+            if activeToasts[i] and activeToasts[i].id == thisId then
+                table.remove(activeToasts, i)
+                break
+            end
+        end
+        if guiFrame.Parent then guiFrame.Parent:Destroy() end
+        -- re-stack remaining toasts (slide down)
+        for i = 1, #activeToasts do
+            local ent = activeToasts[i]
+            if ent and ent.gui then
+                local targetY = (TOAST_HEIGHT + TOAST_MARGIN) * (i - 1)
+                ent.gui:TweenPosition(UDim2.new(0, 0, 0, targetY), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.22, true)
+            end
+        end
+    end)
 
-		-- re-stack remaining toasts (slide down)
-		for i = 1, #activeToasts do
-			local entry = activeToasts[i]
-			if entry and entry.gui then
-				local targetY = (TOAST_HEIGHT + TOAST_MARGIN) * (i - 1)
-				entry.gui:TweenPosition(UDim2.new(0, 0, 0, targetY), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.22, true)
-			end
-		end
-	end)
-
-	-- return id so other scripts can reference
-	return thisId
+    return thisId
 end
 
--- Public API via BindableEvent: other local scripts can fire notifications
--- Create BindableEvent in PlayerGui if not exists
+-- BindableEvent public API for other LocalScripts
 local function ensureBindable()
-	local bindName = "ToastServiceEvent"
-	local be = playerGui:FindFirstChild(bindName)
-	if not be then
-		be = Instance.new("BindableEvent")
-		be.Name = bindName
-		be.Parent = playerGui
-	end
-	return be
+    local bindName = "ToastServiceEvent"
+    local be = playerGui:FindFirstChild(bindName)
+    if not be then
+        be = Instance.new("BindableEvent")
+        be.Name = bindName
+        be.Parent = playerGui
+    end
+    return be
 end
 local toastEvent = ensureBindable()
-
--- When event fired, params should be table {title=, color=Color3, duration=number}
 toastEvent.Event:Connect(function(tbl)
-	if type(tbl) == "table" then
-		createToast(tbl)
-	end
+    if type(tbl) == "table" then
+        createToast(tbl)
+    end
 end)
 
--- SHIFT LOCK implementation
--- PC: use MouseBehavior + DevEnableMouseLock
--- Mobile: simulate by locking camera to humanoid attach + basic touch rotate (rotate HRP yaw with drag)
-local function setShiftLock(state)
-	shiftLockEnabled = state and true or false
-	if not camera then camera = workspace.CurrentCamera end
+-- ===== SHIFT LOCK (PC real + mobile simulated) =====
+local function applyShiftLock(state)
+    shiftLockEnabled = state and true or false
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+        -- will be enforced in RenderStepped once character exists
+        return
+    end
 
-	if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
-		-- try again later
-		return
-	end
+    if shiftLockEnabled then
+        -- Use Scriptable camera to control exact shoulder position
+        camera.CameraType = Enum.CameraType.Scriptable
+        -- attempt to keep DevEnableMouseLock on PC for consistency
+        pcall(function() player.DevEnableMouseLock = true end)
+    else
+        -- restore default camera behavior
+        camera.CameraType = Enum.CameraType.Custom
+        if not UserInputService.TouchEnabled then
+            pcall(function() UserInputService.MouseBehavior = Enum.MouseBehavior.Default end)
+        end
+    end
 
-	-- PC
-	if not UserInputService.TouchEnabled then
-		-- ensure DevEnableMouseLock true then set MouseBehavior
-		player.DevEnableMouseLock = true
-		UserInputService.MouseBehavior = state and Enum.MouseBehavior.LockCenter or Enum.MouseBehavior.Default
-	else
-		-- Mobile: simulate
-		if state then
-			-- attach camera to humanoid (attach behaves like shoulder/center)
-			camera.CameraType = Enum.CameraType.Attach
-			camera.CameraSubject = player.Character:FindFirstChild("Humanoid") or camera.CameraSubject
-			-- we'll allow rotating HRP with touch drags (see below)
-		else
-			camera.CameraType = Enum.CameraType.Custom
-		end
-	end
-
-	-- show toast with lime color if activated
-	if state then
-		createToast({title = "Shift Lock Activado", color = Color3.fromRGB(181, 255, 0), duration = TOAST_DURATION})
-	else
-		createToast({title = "Shift Lock Desactivado", color = Color3.fromRGB(255, 100, 100), duration = TOAST_DURATION})
-	end
+    -- show toast (lime for activate, red for deactivate)
+    if shiftLockEnabled then
+        createToast({title = "Shift Lock Activado", color = Color3.fromRGB(181,255,0), duration = TOAST_DURATION})
+    else
+        createToast({title = "Shift Lock Desactivado", color = Color3.fromRGB(255,100,100), duration = TOAST_DURATION})
+    end
 end
 
--- Chat command .sh
+-- rotate HRP with mouse/touch while shift lock enabled
+UserInputService.InputChanged:Connect(function(input)
+    if not shiftLockEnabled then return end
+    if input.UserInputType == Enum.UserInputType.MouseMovement and not UserInputService.TouchEnabled then
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local dx = input.Delta.X
+            local hrp = player.Character.HumanoidRootPart
+            hrp.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(0, -math.rad(dx * mouseSensitivityPC), 0)
+        end
+    end
+end)
+
+UserInputService.TouchMoved:Connect(function(touch, gp)
+    if not shiftLockEnabled then return end
+    if not UserInputService.TouchEnabled then return end
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = player.Character.HumanoidRootPart
+        local dx = touch.Delta.X
+        hrp.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(0, -math.rad(dx * touchSensitivity), 0)
+    end
+end)
+
+-- camera update on render: place camera at shoulder and look at head
+RunService:BindToRenderStep("ShiftLockCamera", Enum.RenderPriority.Camera.Value + 1, function(dt)
+    enforceCameraSettings()
+
+    if not shiftLockEnabled then return end
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+
+    local hrp = player.Character.HumanoidRootPart
+    -- compute world shoulder position
+    local worldOffset = (hrp.CFrame * CFrame.new(shoulderOffset)).p
+    local lookAt = hrp.Position + Vector3.new(0, 1.4, 0)
+    camera.CFrame = CFrame.lookAt(worldOffset, lookAt)
+end)
+
+-- chat command
 player.Chatted:Connect(function(msg)
-	if type(msg) ~= "string" then return end
-	if msg:lower():match("^%.sh$") then
-		setShiftLock(not shiftLockEnabled)
-	end
+    if type(msg) ~= "string" then return end
+    if msg:lower():match("^%.sh$") then
+        applyShiftLock(not shiftLockEnabled)
+    end
 end)
 
--- Mobile rotation handling (simple)
-local dragging = false
-local lastPos = nil
-local sensitivity = 0.5 -- tune rotation speed for mobile
-
-UserInputService.TouchMoved:Connect(function(input, gameProcessed)
-	if not shiftLockEnabled then return end
-	if not UserInputService.TouchEnabled then return end
-	if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
-
-	if input.UserInputType == Enum.UserInputType.Touch then
-		-- single touch drag rotates character yaw
-		if input.Position and input.Delta then
-			local deltaX = input.Delta.X
-			local hrp = player.Character.HumanoidRootPart
-			local yaw = CFrame.Angles(0, -math.rad(deltaX * sensitivity), 0)
-			hrp.CFrame = CFrame.new(hrp.Position) * yaw
-		end
-	end
-end)
-
--- PC mouse movement rotating character when shiftLockEnabled
-UserInputService.InputChanged:Connect(function(input, gp)
-	if not shiftLockEnabled then return end
-	if input.UserInputType == Enum.UserInputType.MouseMovement and not UserInputService.TouchEnabled then
-		if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-			local dx = input.Delta.X
-			local hrp = player.Character.HumanoidRootPart
-			local yaw = CFrame.Angles(0, -math.rad(dx * 0.18), 0) -- adjust sensitivity
-			hrp.CFrame = CFrame.new(hrp.Position) * yaw
-		end
-	end
-end)
-
--- Auto-protect every frame: enforce camera settings and keep shift lock active if enabled
+-- protect / reapply settings frequently
 RunService.RenderStepped:Connect(function()
-	enforceCameraSettings()
-	-- if shiftLock supposed to be active, keep forcing relevant flags
-	if shiftLockEnabled then
-		if not UserInputService.TouchEnabled then
-			player.DevEnableMouseLock = true
-			if UserInputService.MouseBehavior ~= Enum.MouseBehavior.LockCenter then
-				UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
-			end
-		else
-			-- mobile: keep camera attached
-			if camera.CameraType ~= Enum.CameraType.Attach then
-				camera.CameraType = Enum.CameraType.Attach
-			end
-		end
-	end
+    enforceCameraSettings()
+    if shiftLockEnabled then
+        -- enforce flags on PC if possible
+        if not UserInputService.TouchEnabled then
+            pcall(function() player.DevEnableMouseLock = true end)
+            if UserInputService.MouseBehavior ~= Enum.MouseBehavior.LockCenter then
+                pcall(function() UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter end)
+            end
+        else
+            -- mobile: ensure camera remains Scriptable
+            if camera.CameraType ~= Enum.CameraType.Scriptable then camera.CameraType = Enum.CameraType.Scriptable end
+        end
+    end
 end)
 
--- Expose simple API to other local scripts (table in PlayerGui)
--- You can call this from another LocalScript:
--- local be = player.PlayerGui:FindFirstChild("ToastServiceEvent"); if be then be:Fire({title="Hello", color=Color3.new(1,0,0), duration=4}) end
--- (that will stack with our toasts)
-
--- initial apply (no shift lock by default)
+-- initial apply
 enforceCameraSettings()
