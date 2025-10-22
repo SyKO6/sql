@@ -1,10 +1,15 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/intro.lua"))()  
 
--- SCRIPT FINAL OPTIMIZADO
--- LocalScript cliente: ESP always-on-top, tracker 3D, colores, temmies y contorno
--- Actualiza "visual beast chance" cada 5s para mostrar en el nametag
+-- SCRIPT FINAL (LocalScript) - Optimizado y completo
+-- - ESP always-on-top para otros jugadores
+-- - Tracker 3D entre humps
+-- - Sistema de colores (Typing/Captured/Ragdoll/BeastNearby/Beast/Crawling)
+-- - Temmies debajo de pantallas (aparecen/ocultan con tolerancia de color)
+-- - Contorno de ComputerTable con fade por distancia
+-- - VisualChance actualizado cada 5s
+-- - Un solo RenderStepped, limpieza correcta, sin leaks
 
--- Servicios
+-- ========== SERVICIOS ==========
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
@@ -12,7 +17,7 @@ local Workspace = workspace
 
 local player = Players.LocalPlayer
 
--- Configuración rápida
+-- ========== CONFIG ==========
 local normalSpeed = 18.8
 local crawlSpeed = 10.8
 local beastSpeed = 18.8
@@ -26,7 +31,7 @@ player.CameraMode = Enum.CameraMode.Classic
 player.DevCameraOcclusionMode = Enum.DevCameraOcclusionMode.Invisicam
 player.CameraMaxZoomDistance = 1000
 
--- Lighting fixes (aplicar y vigilar cambios)
+-- Lighting safe fix
 Lighting.GlobalShadows = false
 if Lighting:FindFirstChild("Atmosphere") then
     Lighting.Atmosphere.Density = 0
@@ -47,8 +52,8 @@ if Lighting:GetAttribute("ConnectedToFixes") ~= true then
     end
 end
 
--- UTIL: limpieza por player (conexiones / instancias)
-local playerCleanup = {}
+-- ========== UTIL: limpieza por player ==========
+local playerCleanup = {} -- player -> {items}
 local function addCleanup(p, obj)
     if not p then return end
     playerCleanup[p] = playerCleanup[p] or {}
@@ -68,7 +73,7 @@ local function runCleanup(p)
     playerCleanup[p] = nil
 end
 
--- WALK SPEED: una conexión por personaje, limpiada
+-- ========== ENFORCE WALK SPEED (1 heartbeat por personaje) ==========
 local function enforceWalkSpeedForCharacter(char)
     if not char then return end
     local humanoid = char:FindFirstChildOfClass("Humanoid")
@@ -119,13 +124,11 @@ end
 if player.Character then enforceWalkSpeedForCharacter(player.Character) end
 player.CharacterAdded:Connect(enforceWalkSpeedForCharacter)
 
--- ==================================================
--- ESP / TRACKER / TEMMIE / TABLE CONTOUR (UNIFICADO)
--- ==================================================
+-- ========== TABLAS GLOBALES ==========
 local activeESPs = {}    -- player -> {highlight, billboard, nameLabel, trackerPart, targetTorso, target}
-local activeTables = {}  -- tableModel -> {alpha = 0}
-local lastColorState = setmetatable({}, {__mode = "k"}) -- weak keys
-local visualChances = {}  -- player -> visualChance (actualizado cada 5s)
+local activeTables = {}  -- tableModel -> {alpha}
+local lastColorState = setmetatable({}, {__mode = "k"}) -- weak keys (screen -> bool)
+local visualChances = {}  -- player -> visualChance
 
 -- TEMMIE config
 local TEMMIE_IMAGE_ID = "rbxassetid://106452528796091"
@@ -134,13 +137,13 @@ local TEMMIE_WIDTH = 86
 local TEMMIE_HEIGHT = TEMMIE_WIDTH * (2496 / 1920)
 local TEMMIE_SIZE = UDim2.new(0, TEMMIE_WIDTH, 0, TEMMIE_HEIGHT)
 
--- fade params
+-- fade / contour params
 local MIN_DIST = 15
 local MAX_DIST = 30
-local CONTOUR_COLOR = Color3.fromRGB(0, 255, 0)
+local CONTOUR_COLOR = Color3.fromRGB(0,255,0)
 local FADE_SPEED = 0.2
 
--- color helpers
+-- ========== HELPERS COLOR ==========
 local function colorClose(a, b, tol)
     tol = tol or 6
     local ar, ag, ab = math.floor(a.R * 255), math.floor(a.G * 255), math.floor(a.B * 255)
@@ -153,13 +156,33 @@ local function isDisabledColor(color)
     return colorClose(color, DISABLED_COLOR, 8)
 end
 
--- Create temmie under an original billboard gui's adornee (safe)
+-- ========== ENSURE TABLE CONTOUR ==========
+local function ensureTableContour(tableModel)
+    if not tableModel or not tableModel:IsA("Model") then return end
+    if activeTables[tableModel] then return end
+
+    if not tableModel:FindFirstChild("TableESP") then
+        local hl = Instance.new("Highlight")
+        hl.Name = "TableESP"
+        hl.Adornee = tableModel
+        hl.FillTransparency = 1
+        hl.OutlineTransparency = 1
+        hl.OutlineColor = CONTOUR_COLOR
+        hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        hl.Parent = tableModel
+    end
+
+    activeTables[tableModel] = {alpha = 0}
+end
+
+-- ========== CREATE TEMMIE ==========
 local function createTemmieBillboard(originalBill)
     if not originalBill or not originalBill:IsA("BillboardGui") then return end
     local screen = originalBill.Parent
     local tableModel = screen and screen.Parent
     if not (screen and screen:IsA("BasePart")) then return end
     if not (tableModel and tableModel.Name == "ComputerTable") then return end
+
     if screen:FindFirstChild("BillboardGuiTemmie") then return end
 
     local temmie = Instance.new("BillboardGui")
@@ -180,6 +203,7 @@ local function createTemmieBillboard(originalBill)
     imageLabel.ImageTransparency = 0.35
     imageLabel.Parent = temmie
 
+    -- attach
     if originalBill.Adornee and originalBill.Adornee:IsA("BasePart") then
         local adornee = originalBill.Adornee
         local attach = adornee:FindFirstChild("TemmieAttachment")
@@ -202,13 +226,35 @@ local function createTemmieBillboard(originalBill)
     end
 end
 
--- initial scan for tables (top-level + models)
+-- ========== CONNECT SCREEN (color change) ==========
+local function connectScreen(tableModel)
+    local screen = tableModel:FindFirstChild("Screen")
+    if not screen then return end
+    if screen:GetAttribute("Connected") then return end
+    screen:SetAttribute("Connected", true)
+
+    local temmie = screen:FindFirstChild("BillboardGuiTemmie")
+    local esp = tableModel:FindFirstChild("TableESP")
+
+    screen:GetPropertyChangedSignal("Color"):Connect(function()
+        local disabled = isDisabledColor(screen.Color)
+        if temmie then temmie.Enabled = not disabled end
+        if esp then esp.Enabled = not disabled end
+    end)
+
+    -- initial apply
+    local disabled = isDisabledColor(screen.Color)
+    if temmie then temmie.Enabled = not disabled end
+    if esp then esp.Enabled = not disabled end
+end
+
+-- ========== INITIAL SCAN FOR TABLES (top-level + models) ==========
 local function initialScanForTables()
     for _, obj in ipairs(Workspace:GetChildren()) do
         if obj:IsA("Model") then
             for _, child in ipairs(obj:GetChildren()) do
                 if child.Name == "ComputerTable" and child:IsA("Model") then
-                    ensureTableContour(child) -- may be nil yet; define below or local forward
+                    ensureTableContour(child)
                     local screen = child:FindFirstChild("Screen")
                     if screen then
                         local originalBill = screen:FindFirstChild("BillboardGui")
@@ -217,6 +263,7 @@ local function initialScanForTables()
                 end
             end
         elseif obj.Name == "ComputerTable" and obj:IsA("Model") then
+            ensureTableContour(obj)
             local screen = obj:FindFirstChild("Screen")
             if screen then
                 local originalBill = screen:FindFirstChild("BillboardGui")
@@ -226,26 +273,10 @@ local function initialScanForTables()
     end
 end
 
--- forward declare ensureTableContour (se usa arriba)
-local function ensureTableContour(tableModel)
-    if not tableModel or not tableModel:IsA("Model") then return end
-    if activeTables[tableModel] then return end
+-- run initial scan
+initialScanForTables()
 
-    if not tableModel:FindFirstChild("TableESP") then
-        local hl = Instance.new("Highlight")
-        hl.Name = "TableESP"
-        hl.Adornee = tableModel
-        hl.FillTransparency = 1
-        hl.OutlineTransparency = 1
-        hl.OutlineColor = CONTOUR_COLOR
-        hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-        hl.Parent = tableModel
-    end
-
-    activeTables[tableModel] = {alpha = 0}
-end
-
--- connect child added (models) - controlled
+-- ChildAdded listener (controlado, no DescendantAdded)
 Workspace.ChildAdded:Connect(function(child)
     task.defer(function()
         if not child then return end
@@ -271,39 +302,15 @@ Workspace.ChildAdded:Connect(function(child)
     end)
 end)
 
--- passive scan fallback (cada 5s, según tu pedido para beastChance; usamos también para tables)
+-- passive fallback scan cada 5s (también coincide con tu petición)
 task.spawn(function()
     while task.wait(5) do
         if not player or not player.Parent then break end
-        -- scan arcades/tables (más frecuente que 90s)
         initialScanForTables()
     end
 end)
 
--- connectScreen: set up color-change listener with tolerance
-local function connectScreen(tableModel)
-    local screen = tableModel:FindFirstChild("Screen")
-    if not screen then return end
-    if screen:GetAttribute("Connected") then return end
-    screen:SetAttribute("Connected", true)
-
-    local temmie = screen:FindFirstChild("BillboardGuiTemmie")
-    local esp = tableModel:FindFirstChild("TableESP")
-
-    screen:GetPropertyChangedSignal("Color"):Connect(function()
-        local disabled = isDisabledColor(screen.Color)
-        if temmie then temmie.Enabled = not disabled end
-        if esp then esp.Enabled = not disabled end
-    end)
-
-    local disabled = isDisabledColor(screen.Color)
-    if temmie then temmie.Enabled = not disabled end
-    if esp then esp.Enabled = not disabled end
-end
-
--- =============================
--- CREAR / DESTRUIR ESPs (tracker + billboard + highlight)
--- =============================
+-- ========== CREAR / DESTRUIR ESPs ==========
 local function destroyESPForTarget(target)
     local data = activeESPs[target]
     if not data then return end
@@ -333,6 +340,7 @@ local function createESP(target)
     if target:GetAttribute("ESPAdded") then return end
     target:SetAttribute("ESPAdded", true)
 
+    -- Highlight
     local highlight = Instance.new("Highlight")
     highlight.Name = "ESPHighlight"
     highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
@@ -340,9 +348,10 @@ local function createESP(target)
     highlight.OutlineTransparency = 0
     highlight.Parent = char
 
+    -- Billboard + label
     local billboard = Instance.new("BillboardGui")
     billboard.Name = "NameTag"
-    billboard.Size = UDim2.new(0, 220, 0, 18)
+    billboard.Size = UDim2.new(0,220,0,18)
     billboard.AlwaysOnTop = true
     billboard.Adornee = char:FindFirstChild("Head") or char:WaitForChild("Head")
     billboard.Parent = char
@@ -357,14 +366,14 @@ local function createESP(target)
     nameLabel.TextScaled = true
     nameLabel.Parent = billboard
 
-    -- tracker part
+    -- Tracker part
     local trackerPart = Instance.new("Part")
     trackerPart.Name = "TorsoTrackerLine"
     trackerPart.Anchored = true
     trackerPart.CanCollide = false
     trackerPart.Material = Enum.Material.Neon
     trackerPart.Transparency = 0.35
-    trackerPart.Size = Vector3.new(0.04, 0.04, 0.04)
+    trackerPart.Size = Vector3.new(0.04,0.04,0.04)
     trackerPart.Color = Color3.fromRGB(255,255,255)
     trackerPart.Parent = Workspace
     trackerPart.Locked = true
@@ -390,7 +399,7 @@ local function createESP(target)
     addCleanup(player, ancConn)
 end
 
--- Inicial: aplicar ESP a players existentes
+-- Inicial: aplicar ESP a players existentes (excepto local)
 for _, plr in pairs(Players:GetPlayers()) do
     if plr ~= player then
         plr.CharacterAdded:Connect(function() task.wait(1); createESP(plr) end)
@@ -405,9 +414,7 @@ Players.PlayerRemoving:Connect(function(plr)
     visualChances[plr] = nil
 end)
 
--- =========================================================
--- Actualizador de "visualChance" (cada 5s) para todos players
--- =========================================================
+-- ========== VISUAL CHANCE UPDATE (cada 5s) ==========
 local function updateAllVisualChances()
     local allPlayers = Players:GetPlayers()
     local playerCount = math.max(#allPlayers, 1)
@@ -425,8 +432,6 @@ local function updateAllVisualChances()
         visualChances[plr] = visualChance
     end
 end
-
--- Ejecutar inmediatamente y luego cada 5s
 updateAllVisualChances()
 task.spawn(function()
     while task.wait(5) do
@@ -435,15 +440,13 @@ task.spawn(function()
     end
 end)
 
--- =========================================================
--- RENDERSTEPPED ÚNICO: actualiza ESPs (colores, texto, tracker) y fades de mesas
--- =========================================================
+-- ========== SINGLE RENDERSTEPPED: actualizar ESPs y mesas ==========
 local renderConn
 if renderConn then renderConn:Disconnect() end
 renderConn = RunService.RenderStepped:Connect(function(dt)
     local localTorso = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 
-    -- Actualizar ESPs
+    -- ESPs
     for target, data in pairs(activeESPs) do
         if not data or not data.target or not data.target.Parent then
             if data and data.trackerPart and data.trackerPart.Parent then data.trackerPart:Destroy() end
@@ -454,9 +457,7 @@ renderConn = RunService.RenderStepped:Connect(function(dt)
                 targetTorso = data.target.Character and data.target.Character:FindFirstChild("HumanoidRootPart")
                 data.targetTorso = targetTorso
             end
-            if not targetTorso then
-                continue
-            end
+            if not targetTorso then continue end
 
             local dist = localTorso and (localTorso.Position - targetTorso.Position).Magnitude or 0
 
@@ -474,7 +475,7 @@ renderConn = RunService.RenderStepped:Connect(function(dt)
             local ragdollValue = ragdoll and ragdoll.Value
             local currentAnimValue = (currentAnim and currentAnim.Value) or ""
 
-            -- PRIORIDAD DE COLORES (igual que el original)
+            -- PRIORIDAD DE COLORES (igual al original)
             local finalColor = Color3.fromRGB(255,255,255)
             local priority = 1
 
@@ -488,7 +489,7 @@ renderConn = RunService.RenderStepped:Connect(function(dt)
                 finalColor = Color3.fromRGB(170,0,255); priority = 4
             end
 
-            -- Beast nearby check
+            -- Beast nearby
             local beastNearby = false
             for _, plr in pairs(Players:GetPlayers()) do
                 local ts = plr:FindFirstChild("TempPlayerStatsModule")
@@ -513,11 +514,11 @@ renderConn = RunService.RenderStepped:Connect(function(dt)
             end
 
             if crawlingValue then
-                local r, g, b = finalColor.R * 255, finalColor.G * 255, finalColor.B * 255
-                finalColor = Color3.fromRGB(math.clamp(r * 0.7,0,255), math.clamp(g * 0.7,0,255), math.clamp(b * 0.7,0,255))
+                local r,g,b = finalColor.R*255, finalColor.G*255, finalColor.B*255
+                finalColor = Color3.fromRGB(math.clamp(r*0.7,0,255), math.clamp(g*0.7,0,255), math.clamp(b*0.7,0,255))
             end
 
-            -- Aplicar visuals
+            -- Apply visuals
             if data.highlight and data.highlight.Parent then
                 data.highlight.OutlineColor = finalColor
             end
@@ -536,10 +537,10 @@ renderConn = RunService.RenderStepped:Connect(function(dt)
                 data.nameLabel.TextColor3 = finalColor
             end
 
-            -- Tracker
-            if data.trackerPart and data.trackerPart.Parent then
-                local midpoint = ( (localTorso and localTorso.Position) or targetTorso.Position + targetTorso.Position ) / 2
-                local direction = (targetTorso.Position - (localTorso and localTorso.Position or targetTorso.Position))
+            -- Tracker: midpoint + lookAt
+            if data.trackerPart and data.trackerPart.Parent and localTorso then
+                local midpoint = (localTorso.Position + targetTorso.Position) / 2
+                local direction = (targetTorso.Position - localTorso.Position)
                 local distance = math.max(0.01, direction.Magnitude)
                 data.trackerPart.Size = Vector3.new(0.04, 0.04, distance)
                 data.trackerPart.CFrame = CFrame.lookAt(midpoint, targetTorso.Position)
@@ -549,7 +550,7 @@ renderConn = RunService.RenderStepped:Connect(function(dt)
         end
     end
 
-    -- Fades mesas / temmies / contorno
+    -- Fades mesas / temmies / contornos
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local root = player.Character.HumanoidRootPart
         for tableModel, data in pairs(activeTables) do
