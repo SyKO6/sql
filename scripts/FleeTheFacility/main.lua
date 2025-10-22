@@ -144,84 +144,113 @@ local function destroyESPForTarget(target)
     activeESPs[target] = nil
 end
 
+--// ESP avanzado con tracker 3D (optimizado sin lag)
+local ActiveTrackers = {}
+
 local function createESP(target)
-    if not target or target == player then return end
-    if activeESPs[target] then return end
+	if target == player then return end
 
-    local c = target.Character
-    if not c or not c:FindFirstChild("Head") or not c:FindFirstChild("HumanoidRootPart") then
-        -- esperar a que el character esté listo (pero no crear mil listeners)
-        local conn
-        conn = target.CharacterAdded:Connect(function()
-            if conn then conn:Disconnect() end
-            createESP(target)
-        end)
-        addCleanup(player, conn)
-        return
-    end
+	local highlight = Instance.new("Highlight")
+	highlight.Name = "ESPHighlight"
+	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	highlight.FillTransparency = 1
+	highlight.OutlineTransparency = 0
+	highlight.Parent = target.Character
 
-    -- evitar duplicados marcando al player
-    if target:GetAttribute("ESPAdded") then return end
-    target:SetAttribute("ESPAdded", true)
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "NameTag"
+	billboard.Size = UDim2.new(0, 220, 0, 18)
+	billboard.AlwaysOnTop = true
+	billboard.Adornee = target.Character:WaitForChild("Head")
+	billboard.Parent = target.Character
 
-    -- Highlight
-    local highlight = Instance.new("Highlight")
-    highlight.Name = "ESPHighlight"
-    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-    highlight.FillTransparency = 1
-    highlight.OutlineTransparency = 0
-    highlight.Parent = c
+	local nameLabel = Instance.new("TextLabel")
+	nameLabel.Size = UDim2.new(1, 0, 1, 0)
+	nameLabel.BackgroundTransparency = 1
+	nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	nameLabel.TextStrokeTransparency = 0.5
+	nameLabel.TextTransparency = 0.15
+	nameLabel.Font = Enum.Font.GothamBold
+	nameLabel.TextScaled = true
+	nameLabel.Parent = billboard
 
-    -- Billboard + label
-    local billboard = Instance.new("BillboardGui")
-    billboard.Name = "NameTag"
-    billboard.Size = UDim2.new(0, 220, 0, 18)
-    billboard.AlwaysOnTop = true
-    billboard.Adornee = c:FindFirstChild("Head")
-    billboard.Parent = c
+	-- 🧠 Tracker 3D (línea entre torsos)
+	local playerTorso = player.Character:WaitForChild("HumanoidRootPart")
+	local targetTorso = target.Character:WaitForChild("HumanoidRootPart")
 
-    local nameLabel = Instance.new("TextLabel")
-    nameLabel.Size = UDim2.new(1, 0, 1, 0)
-    nameLabel.BackgroundTransparency = 1
-    nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    nameLabel.TextStrokeTransparency = 0.5
-    nameLabel.TextTransparency = 0.15
-    nameLabel.Font = Enum.Font.GothamBold
-    nameLabel.TextScaled = true
-    nameLabel.Parent = billboard
+	local trackerPart = Instance.new("Part")
+	trackerPart.Name = "TorsoTrackerLine"
+	trackerPart.Anchored = true
+	trackerPart.CanCollide = false
+	trackerPart.Material = Enum.Material.Neon
+	trackerPart.Transparency = 0.35
+	trackerPart.Size = Vector3.new(0.15, 0.15, 0.15)
+	trackerPart.Color = Color3.fromRGB(255, 255, 255)
+	trackerPart.Parent = workspace
+	trackerPart.Locked = true
+	trackerPart.CastShadow = false
+	trackerPart:SetAttribute("NonInteractive", true)
 
-    -- Tracker part (pequeño parte que se estira entre ambos torsos)
-    local trackerPart = Instance.new("Part")
-    trackerPart.Name = "TorsoTrackerLine"
-    trackerPart.Anchored = true
-    trackerPart.CanCollide = false
-    trackerPart.Material = Enum.Material.Neon
-    trackerPart.Transparency = 0.35
-    trackerPart.Size = Vector3.new(0.04, 0.04, 0.04)
-    trackerPart.Color = Color3.fromRGB(255,255,255)
-    trackerPart.Parent = Workspace
-    trackerPart.Locked = true
-    trackerPart.CastShadow = false
-
-    activeESPs[target] = {
-        highlight = highlight,
-        billboard = billboard,
-        nameLabel = nameLabel,
-        trackerPart = trackerPart,
-        targetTorso = c:FindFirstChild("HumanoidRootPart"),
-    }
-
-    -- limpiar si el player sale o muere
-    local function onRemove()
-        destroyESPForTarget(target)
-        target:SetAttribute("ESPAdded", nil)
-    end
-
-    local ancConn = target.AncestryChanged:Connect(function(_, parent)
-        if not parent then onRemove() end
-    end)
-    addCleanup(player, ancConn)
+	-- Guardamos los datos en la lista global
+	ActiveTrackers[target] = {
+		Highlight = highlight,
+		NameLabel = nameLabel,
+		PlayerTorso = playerTorso,
+		TargetTorso = targetTorso,
+		TrackerPart = trackerPart,
+		Target = target
+	}
 end
+
+-- ✅ Una sola conexión global
+RunService.RenderStepped:Connect(function()
+	for target, data in pairs(ActiveTrackers) do
+		if not data.Target or not data.Target.Parent then
+			-- limpiar si el jugador se fue
+			if data.TrackerPart then data.TrackerPart:Destroy() end
+			ActiveTrackers[target] = nil
+			continue
+		end
+
+		local playerTorso = data.PlayerTorso
+		local targetTorso = data.TargetTorso
+		local trackerPart = data.TrackerPart
+		local highlight = data.Highlight
+		local nameLabel = data.NameLabel
+
+		if not (playerTorso and targetTorso and trackerPart and highlight and nameLabel) then
+			continue
+		end
+
+		-- Distancia
+		local dist = (playerTorso.Position - targetTorso.Position).Magnitude
+
+		-- Color según estado (simplificado para rendimiento)
+		local finalColor = Color3.fromRGB(255, 255, 255)
+		local tempStats = data.Target:FindFirstChild("TempPlayerStatsModule")
+		local isBeast = tempStats and tempStats:FindFirstChild("IsBeast")
+		local beastValue = isBeast and isBeast.Value
+
+		if beastValue then
+			finalColor = Color3.fromRGB(255, 0, 0)
+		end
+
+		-- Aplicar color al highlight y tracker
+		highlight.OutlineColor = finalColor
+		nameLabel.TextColor3 = finalColor
+		trackerPart.Color = finalColor
+
+		-- Actualizar tracker
+		local midpoint = (playerTorso.Position + targetTorso.Position) / 2
+		local direction = (targetTorso.Position - playerTorso.Position)
+		local distance = direction.Magnitude
+		trackerPart.Size = Vector3.new(0.04, 0.04, distance)
+		trackerPart.CFrame = CFrame.lookAt(midpoint, targetTorso.Position)
+
+		-- Texto
+		nameLabel.Text = string.format("%s [%s] - %.1f", data.Target.Name, beastValue and "Beast" or "Human", dist)
+	end
+end)
 
 -- Aplicar ESP a todos los players actuales (excepto local)
 for _, plr in pairs(Players:GetPlayers()) do
