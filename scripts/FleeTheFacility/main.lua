@@ -17,6 +17,7 @@ local crawlSpeed = 10.8
 local beastSpeed = 18.8
 local fov = 75
 
+
 -- Camera / visuals
 if Workspace.CurrentCamera then
     Workspace.CurrentCamera.FieldOfView = fov
