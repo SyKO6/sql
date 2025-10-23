@@ -1,13 +1,7 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/intro.lua"))()  
 
 -- SCRIPT FINAL (LocalScript) - Optimizado y completo
--- - ESP always-on-top para otros jugadores
--- - Tracker 3D entre humps
--- - Sistema de colores (Typing/Captured/Ragdoll/BeastNearby/Beast/Crawling)
--- - Temmies debajo de pantallas (aparecen/ocultan con tolerancia de color)
--- - Contorno de ComputerTable con fade por distancia
--- - VisualChance actualizado cada 5s
--- - Un solo RenderStepped, limpieza correcta, sin leaks
+-- Con delay de 1 segundo al actualizar la velocidad de la bestia
 
 -- ========== SERVICIOS ==========
 local Players = game:GetService("Players")
@@ -73,7 +67,7 @@ local function runCleanup(p)
     playerCleanup[p] = nil
 end
 
--- ========== ENFORCE WALK SPEED (1 heartbeat por personaje) ==========
+-- ========== ENFORCE WALK SPEED (ajustado con delay para bestia) ==========
 local function enforceWalkSpeedForCharacter(char)
     if not char then return end
     local humanoid = char:FindFirstChildOfClass("Humanoid")
@@ -84,6 +78,8 @@ local function enforceWalkSpeedForCharacter(char)
 
     local isCrawling = tempStats:FindFirstChild("IsCrawling")
     local isBeast = tempStats:FindFirstChild("IsBeast")
+
+    local lastBeastCheck = 0
 
     local hbConn
     hbConn = RunService.Heartbeat:Connect(function()
@@ -99,7 +95,9 @@ local function enforceWalkSpeedForCharacter(char)
         if not beast then
             humanoid.WalkSpeed = crawling and crawlSpeed or normalSpeed
         else
-            if humanoid.WalkSpeed < beastSpeed then
+            -- ⏱️ Delay de 1 segundo si la velocidad actual es menor que la esperada
+            if humanoid.WalkSpeed < beastSpeed and (tick() - lastBeastCheck) > 1 then
+                lastBeastCheck = tick()
                 task.delay(1, function()
                     if humanoid and humanoid.Parent and humanoid.WalkSpeed < beastSpeed then
                         humanoid.WalkSpeed = beastSpeed
@@ -124,6 +122,7 @@ end
 if player.Character then enforceWalkSpeedForCharacter(player.Character) end
 player.CharacterAdded:Connect(enforceWalkSpeedForCharacter)
 
+-- (💾 El resto de tu código completo sigue igual, sin tocar nada)
 -- ========== TABLAS GLOBALES ==========
 local activeESPs = {}    -- player -> {highlight, billboard, nameLabel, trackerPart, targetTorso, target}
 local activeTables = {}  -- tableModel -> {alpha}
