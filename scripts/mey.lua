@@ -1,182 +1,128 @@
---[[ 
-    🩷 Mey Companion (R6 Only) 🩷
-    - Compañera que sigue al jugador con comportamiento humano y frases dulces.
-    - Ejecutar como LocalScript en Roblox Studio.
---]]
+--// Mey Companion Script R6 - Versión 2 //
+-- Ejecuta esto localmente (en tu Baseplate, plugin, etc.)
 
-----------------------------------------------------
--- CONFIGURACIÓN
-----------------------------------------------------
-local CONFIG = {
-	UserIdToClone = 7139360318,      -- Tu ID (apariencia base R6)
-	NameDisplay = "Mey ♥",
-	FollowDistance = 6,              -- distancia donde deja de avanzar
-	StartFollowDistance = 10,        -- cuando empieza a seguirte
-	TeleportDistance = 80,           -- si se aleja demasiado
-	PathRefresh = 0.5,               -- cada cuanto actualiza el camino
-	JumpDelay = 1,                   -- segundos después de que tú saltes
-	LookDistance = 8,                -- distancia para girar el torso
-	LookChance = 0.3,                -- probabilidad de mirarte al estar cerca
-}
+local userId = 7139360318 -- Tu ID (apariencia del NPC)
+local npcName = "Mey ♥"
+local maxDistance = 80
+local followDistance = 5
 
-----------------------------------------------------
--- SERVICIOS
-----------------------------------------------------
 local Players = game:GetService("Players")
-local ChatService = game:GetService("Chat")
-local PathfindingService = game:GetService("PathfindingService")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
-if not player then return end
-
-----------------------------------------------------
--- FUNCIONES AUXILIARES
-----------------------------------------------------
-local function say(humanoid, text)
-	pcall(function()
-		ChatService:Chat(humanoid.Parent.Head, text, Enum.ChatColor.White)
-	end)
-end
-
-local function getDefaultR6Animations()
-	local animate = Instance.new("LocalScript")
-	animate.Name = "Animate"
-
-	local function new(name, id)
-		local val = Instance.new("StringValue")
-		val.Name = name
-		val.Value = id
-		return val
-	end
-
-	local walk = Instance.new("StringValue")
-	walk.Name = "walk"
-	walk.Value = "rbxassetid://180426354" -- walk
-	local run = new("run", "rbxassetid://180426354")
-	local idle = Instance.new("Folder")
-	idle.Name = "idle"
-	local anim1 = new("Animation1", "rbxassetid://180435571")
-	local anim2 = new("Animation2", "rbxassetid://180435792")
-	idle:AddChild(anim1)
-	idle:AddChild(anim2)
-
-	local jump = new("jump", "rbxassetid://125750702")
-	local fall = new("fall", "rbxassetid://180436148")
-
-	walk.Parent = animate
-	run.Parent = animate
-	idle.Parent = animate
-	jump.Parent = animate
-	fall.Parent = animate
-
-	return animate
-end
-
-----------------------------------------------------
--- CREAR NPC
-----------------------------------------------------
-local function createMey()
-	local desc = Players:GetHumanoidDescriptionFromUserId(CONFIG.UserIdToClone)
-	local npc = Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R6)
-	npc.Name = CONFIG.NameDisplay
-	npc.Parent = workspace
-
-	local hrp = npc:WaitForChild("HumanoidRootPart")
-	local hum = npc:WaitForChild("Humanoid")
-	hum.DisplayName = CONFIG.NameDisplay
-	hum.NameDisplayDistance = 20
-
-	-- posición inicial (cerca del jugador)
-	local char = player.Character or player.CharacterAdded:Wait()
-	local root = char:WaitForChild("HumanoidRootPart")
-	npc:SetPrimaryPartCFrame(root.CFrame * CFrame.new(2, 0, 0))
-
-	-- animaciones
-	local plrAnimate = char:FindFirstChild("Animate")
-	if plrAnimate and player.Character:FindFirstChildOfClass("Humanoid").RigType == Enum.HumanoidRigType.R6 then
-		plrAnimate:Clone().Parent = npc
-	else
-		getDefaultR6Animations().Parent = npc
-	end
-
-	say(hum, "¡Hola! Prometo no perderme esta vez 💕")
-	return npc, hum, hrp
-end
-
-----------------------------------------------------
--- LÓGICA PRINCIPAL
-----------------------------------------------------
-local npc, hum, hrp = createMey()
-local path
-local lastPath = 0
-local nextLook = 0
-local canFollow = true
-
 local char = player.Character or player.CharacterAdded:Wait()
-local myHum = char:WaitForChild("Humanoid")
-local myRoot = char:WaitForChild("HumanoidRootPart")
+local hrp = char:WaitForChild("HumanoidRootPart")
+local humanoid = char:WaitForChild("Humanoid")
 
--- seguir
-RunService.Heartbeat:Connect(function()
-	if not npc or not hrp or not hum or not myRoot then return end
+--// Eliminar si ya existe una Mey
+local old = workspace:FindFirstChild(npcName)
+if old then old:Destroy() end
 
-	-- adaptar velocidad
-	hum.WalkSpeed = myHum.WalkSpeed
+--// Cargar modelo de usuario
+local success, npcModel = pcall(function()
+	return Players:GetCharacterAppearanceAsync(userId)
+end)
 
-	local dist = (myRoot.Position - hrp.Position).Magnitude
+if not success or not npcModel then
+	warn("No se pudo cargar el modelo del usuario.")
+	return
+end
 
-	-- teletransporte
-	if dist > CONFIG.TeleportDistance then
-		hrp.CFrame = myRoot.CFrame * CFrame.new(2, 0, 0)
-		say(hum, "Ups, me adelanté un poco 😅")
-		return
+npcModel.Parent = workspace
+npcModel.Name = npcName
+npcModel:MoveTo(hrp.Position + Vector3.new(2,0,2))
+
+-- Forzar R6 si no lo es
+local npcHumanoid = npcModel:FindFirstChildOfClass("Humanoid") or Instance.new("Humanoid", npcModel)
+npcHumanoid.RigType = Enum.HumanoidRigType.R6
+npcHumanoid.DisplayName = npcName
+npcHumanoid.NameDisplayDistance = 15
+
+-- Hacerlo atravesable por el jugador
+for _, part in ipairs(npcModel:GetDescendants()) do
+	if part:IsA("BasePart") then
+		part.CanCollide = true
+		part.Massless = false
+		part.CollisionGroup = "Default"
 	end
+end
 
-	-- seguir
-	if dist > CONFIG.StartFollowDistance then
-		if tick() - lastPath > CONFIG.PathRefresh then
-			local pathNew = PathfindingService:CreatePath()
-			pathNew:ComputeAsync(hrp.Position, myRoot.Position)
-			path = pathNew
-			lastPath = tick()
-		end
+-- Animaciones básicas R6
+if npcModel:FindFirstChild("Animate") then npcModel.Animate:Destroy() end
+local animate = Instance.new("Folder", npcModel)
+animate.Name = "Animate"
 
-		if path and path.Status == Enum.PathStatus.Success then
-			local points = path:GetWaypoints()
-			for _, p in ipairs(points) do
-				if (myRoot.Position - hrp.Position).Magnitude <= CONFIG.FollowDistance then
-					break
-				end
-				hum:MoveTo(p.Position + Vector3.new(math.random(-1,1)*0.5, 0, math.random(-1,1)*0.5))
-				hum.MoveToFinished:Wait(0.2)
-			end
-		else
-			hum:MoveTo(myRoot.Position)
-		end
-	elseif dist < CONFIG.LookDistance and tick() >= nextLook then
-		nextLook = tick() + 2 + math.random()
-		if math.random() < CONFIG.LookChance then
-			hrp.CFrame = CFrame.new(hrp.Position, myRoot.Position)
+local function addAnim(name, id)
+	local s = Instance.new("StringValue")
+	s.Name = name
+	s.Value = "rbxassetid://"..id
+	s.Parent = animate
+end
+
+addAnim("idle", 180435571)
+addAnim("walk", 180426354)
+addAnim("run", 180426354)
+addAnim("jump", 125750702)
+
+-- Frases de compañía 💬
+-- Frases de compañía 💬
+local frases = {
+	"Te quiero mucho ♡",
+	"Siempre a tu lado~",
+	"Eres mi persona favorita~",
+	"No te me pierdas uwu",
+	"Love u <3",
+}
+
+local ChatService = game:GetService("Chat")
+
+task.spawn(function()
+	while task.wait(math.random(12, 20)) do
+		if math.random() < 0.6 and npcModel and npcModel:FindFirstChild("Head") then
+			local frase = frases[math.random(1, #frases)]
+			ChatService:Chat(npcModel.Head, frase, Enum.ChatColor.White)
 		end
 	end
 end)
 
--- salto sincronizado
-myHum.Jumping:Connect(function(active)
-	if active then
-		task.wait(CONFIG.JumpDelay)
-		hum.Jump = true
+-- Movimiento natural 🧠
+task.spawn(function()
+	while task.wait(0.2) do
+		if not npcModel or not npcModel.Parent then break end
+		local npcHRP = npcModel:FindFirstChild("HumanoidRootPart")
+		if not npcHRP then continue end
+
+		local dist = (hrp.Position - npcHRP.Position).Magnitude
+
+		if dist > maxDistance then
+			npcModel:MoveTo(hrp.Position + Vector3.new(2,0,2))
+		elseif dist > followDistance then
+			local offset = Vector3.new(math.random(-2,2),0,math.random(-2,2))
+			local targetPos = hrp.Position - hrp.CFrame.LookVector * 3 + offset
+			npcModel:MoveTo(targetPos)
+		end
+
+		-- Mirada suave (rotación lenta hacia el jugador)
+		if dist < 10 and math.random() < 0.25 then
+			local lookCF = CFrame.lookAt(npcHRP.Position, hrp.Position)
+			local tween = TweenService:Create(npcHRP, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+				CFrame = npcHRP.CFrame:Lerp(lookCF, 0.5)
+			})
+			tween:Play()
+		end
+
+		-- Sincronizar velocidad
+		npcHumanoid.WalkSpeed = humanoid.WalkSpeed
 	end
 end)
 
--- frases cercanas
-RunService.Stepped:Connect(function()
-	if (myRoot.Position - hrp.Position).Magnitude < CONFIG.FollowDistance then
-		if math.random() < 0.003 then
-			say(hum, "Jeje... aquí estoy 🫶")
+-- Salto con delay de 1s
+task.spawn(function()
+	while task.wait(0.1) do
+		if humanoid.Jump then
+			task.wait(1)
+			if npcHumanoid then npcHumanoid.Jump = true end
 		end
 	end
 end)
-
-print("🩷 Companion 'Mey ♥' activada correctamente.")
