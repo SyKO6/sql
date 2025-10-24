@@ -1,30 +1,26 @@
--- Mey Companion Script (LocalScript)
--- Safe to use inside Roblox Studio (StarterPlayerScripts)
--- Creates a companion NPC that looks like UserId 7139360318 and behaves like a friendly follower.
+-- Mey Companion Script (Siempre R6)
+-- LocalScript para StarterPlayerScripts
 
 -- =========================================================
--- CONFIGURATION VARIABLES
+-- CONFIGURACIÓN
 -- =========================================================
 local CONFIG = {
-	UserIdToClone = 7139360318,           -- Roblox userId whose appearance to clone
-	NameDisplay = "Mey ♥",                -- Name text over NPC head
-	SpawnOffset = Vector3.new(1.5, 0, 0), -- spawn offset from player
-	FollowDistance = 5,                   -- stop moving if within this distance
-	FollowStartDistance = 10,             -- start moving if farther than this
-	TeleportDistance = 80,                -- teleport if farther than this
-	PathRecomputeInterval = 0.5,          -- seconds between path recalculations
-	SpeechMinDelay = 6,                   -- min seconds between phrases
-	SpeechMaxDelay = 18,                  -- max seconds between phrases
-	SpeechBubbleDuration = 4,             -- duration of each speech bubble
-	LookAtDistance = 8,                   -- distance under which NPC sometimes looks at player
-	LookChance = 0.35,                    -- chance each interval to look
-	LookCheckInterval = 2.2,              -- seconds between look checks
-	JumpDelay = 1.0,                      -- seconds after player jump
-	CollisionGroupName = "CompanionNoPlayer", -- collision group name
-	EnableEmoteSync = true,               -- sync emotes if possible
+	UserIdToClone = 7139360318,           -- Usuario base
+	NameDisplay = "Mey ♥",
+	SpawnOffset = Vector3.new(2, 0, 0),
+	FollowDistance = 5,
+	FollowStartDistance = 10,
+	TeleportDistance = 80,
+	PathRecomputeInterval = 0.5,
+	SpeechMinDelay = 6,
+	SpeechMaxDelay = 18,
+	SpeechBubbleDuration = 4,
+	LookAtDistance = 8,
+	LookChance = 0.35,
+	LookCheckInterval = 2.2,
+	CollisionGroupName = "CompanionNoPlayer",
 }
 
--- Cute random phrases
 local PHRASES = {
 	"¡Hola! 💕",
 	"No te vayas muy lejos 😳",
@@ -39,21 +35,21 @@ local PHRASES = {
 }
 
 -- =========================================================
--- SERVICES
+-- SERVICIOS
 -- =========================================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local PathfindingService = game:GetService("PathfindingService")
 local PhysicsService = game:GetService("PhysicsService")
+local Debris = game:GetService("Debris")
 
 local LocalPlayer = Players.LocalPlayer
 if not LocalPlayer then
-	warn("This script must be a LocalScript under StarterPlayerScripts.")
-	return
+	return warn("Debe ir en StarterPlayerScripts")
 end
 
 -- =========================================================
--- HELPER FUNCTIONS
+-- FUNCIONES AUXILIARES
 -- =========================================================
 local function safeWaitForChild(parent, name)
 	local child = parent:FindFirstChild(name)
@@ -111,54 +107,105 @@ local function createNameTag(nameText)
 end
 
 -- =========================================================
--- CREATE NPC
+-- CREAR R6 SIEMPRE
 -- =========================================================
-local function createCompanion()
-	local success, appearance = pcall(function()
-		return Players:GetCharacterAppearanceAsync(CONFIG.UserIdToClone)
-	end)
-	if not success or not appearance then
-		warn("Failed to get avatar appearance; using dummy rig.")
-		appearance = Instance.new("Model")
-		local hum = Instance.new("Humanoid")
-		hum.Parent = appearance
+local function createR6Dummy()
+	local model = Instance.new("Model")
+	model.Name = CONFIG.NameDisplay
+
+	local function part(name, size, color)
+		local p = Instance.new("Part")
+		p.Name = name
+		p.Size = size
+		p.BrickColor = BrickColor.new(color or "Really black")
+		p.Anchored = false
+		p.CanCollide = false
+		p.Parent = model
+		return p
 	end
 
-	appearance.Name = CONFIG.NameDisplay
-	appearance.Parent = workspace
+	local torso = part("Torso", Vector3.new(2, 2, 1))
+	local head = part("Head", Vector3.new(2, 1, 1))
+	head.Position = torso.Position + Vector3.new(0, 1.5, 0)
+	local la = part("Left Arm", Vector3.new(1, 2, 1))
+	local ra = part("Right Arm", Vector3.new(1, 2, 1))
+	local ll = part("Left Leg", Vector3.new(1, 2, 1))
+	local rl = part("Right Leg", Vector3.new(1, 2, 1))
 
-	local hum = appearance:FindFirstChildOfClass("Humanoid")
-	local root = appearance:FindFirstChild("HumanoidRootPart")
-	if not root then
-		root = Instance.new("Part")
-		root.Name = "HumanoidRootPart"
-		root.Size = Vector3.new(2,2,1)
-		root.Anchored = false
-		root.Parent = appearance
-		appearance.PrimaryPart = root
+	local hum = Instance.new("Humanoid")
+	hum.RigType = Enum.HumanoidRigType.R6
+	hum.Parent = model
+
+	local hrp = part("HumanoidRootPart", Vector3.new(2, 2, 1))
+	hrp.Transparency = 1
+
+	local function weld(p0, p1, cf)
+		local m = Instance.new("Motor6D")
+		m.Part0 = p0
+		m.Part1 = p1
+		m.C0 = cf
+		m.Parent = p0
+	end
+
+	weld(torso, head, CFrame.new(0, 1.5, 0))
+	weld(torso, la, CFrame.new(-1.5, 0.5, 0))
+	weld(torso, ra, CFrame.new(1.5, 0.5, 0))
+	weld(torso, ll, CFrame.new(-0.5, -1, 0))
+	weld(torso, rl, CFrame.new(0.5, -1, 0))
+
+	local rootJoint = Instance.new("Motor6D")
+	rootJoint.Part0 = hrp
+	rootJoint.Part1 = torso
+	rootJoint.Parent = hrp
+
+	createNameTag(CONFIG.NameDisplay).Parent = head
+
+	model.PrimaryPart = hrp
+	return model, hum, hrp
+end
+
+-- =========================================================
+-- CREAR COMPAÑERO
+-- =========================================================
+local function createCompanion()
+	local success, model = pcall(function()
+		return Players:GetCharacterAppearanceAsync(CONFIG.UserIdToClone)
+	end)
+
+	local r6Model, hum, root
+
+	if success and model and model:FindFirstChildOfClass("Humanoid") then
+		-- Si el modelo existe, forzar a R6
+		local humanoid = model:FindFirstChildOfClass("Humanoid")
+		humanoid.RigType = Enum.HumanoidRigType.R6
+		model.Name = CONFIG.NameDisplay
+		root = model:FindFirstChild("HumanoidRootPart")
+		if not root then
+			root = Instance.new("Part")
+			root.Name = "HumanoidRootPart"
+			root.Size = Vector3.new(2, 2, 1)
+			root.Anchored = false
+			root.CanCollide = false
+			root.Parent = model
+			model.PrimaryPart = root
+		end
+		hum = humanoid
+		r6Model = model
+	else
+		warn("Fallo al obtener avatar, usando dummy R6.")
+		r6Model, hum, root = createR6Dummy()
 	end
 
 	local playerChar = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 	local playerRoot = safeWaitForChild(playerChar, "HumanoidRootPart")
+	r6Model.Parent = workspace
 	root.CFrame = playerRoot.CFrame * CFrame.new(CONFIG.SpawnOffset)
 
-	-- name tag
-	local head = appearance:FindFirstChild("Head")
-	if head then
-		createNameTag(CONFIG.NameDisplay).Parent = head
-	end
-
-	-- collision group
-	pcall(function()
-		PhysicsService:CreateCollisionGroup(CONFIG.CollisionGroupName)
-		PhysicsService:SetPartCollisionGroup(root, CONFIG.CollisionGroupName)
-	end)
-
-	return appearance, hum, root
+	return r6Model, hum, root
 end
 
 -- =========================================================
--- MAIN LOGIC
+-- LÓGICA PRINCIPAL
 -- =========================================================
 local companion, humanoid, hrp = createCompanion()
 local lastPathTime = 0
@@ -166,37 +213,33 @@ local nextSpeech = tick() + math.random(CONFIG.SpeechMinDelay, CONFIG.SpeechMaxD
 local nextLook = tick() + CONFIG.LookCheckInterval
 local path = nil
 
-RunService.Heartbeat:Connect(function(dt)
+RunService.Heartbeat:Connect(function()
 	local playerChar = LocalPlayer.Character
 	if not playerChar then return end
 	local playerHRP = playerChar:FindFirstChild("HumanoidRootPart")
 	if not playerHRP or not hrp or not humanoid then return end
 
-	-- Teleport if too far
 	local dist = (playerHRP.Position - hrp.Position).Magnitude
 	if dist >= CONFIG.TeleportDistance then
 		hrp.CFrame = playerHRP.CFrame * CFrame.new(CONFIG.SpawnOffset)
 		return
 	end
 
-	-- Pathfinding follow
 	if dist > CONFIG.FollowStartDistance then
 		if tick() - lastPathTime > CONFIG.PathRecomputeInterval then
-			local pathNew = PathfindingService:CreatePath()
-			pathNew:ComputeAsync(hrp.Position, playerHRP.Position)
-			path = pathNew
+			local newPath = PathfindingService:CreatePath()
+			newPath:ComputeAsync(hrp.Position, playerHRP.Position)
+			path = newPath
 			lastPathTime = tick()
 		end
 		if path and path.Status == Enum.PathStatus.Success then
-			local waypoints = path:GetWaypoints()
-			for _,way in ipairs(waypoints) do
-				humanoid:MoveTo(way.Position)
-				humanoid.MoveToFinished:Wait(CONFIG.MoveToTimeout)
+			for _, waypoint in ipairs(path:GetWaypoints()) do
+				humanoid:MoveTo(waypoint.Position)
+				humanoid.MoveToFinished:Wait(1)
 			end
 		end
 	end
 
-	-- Speech bubbles
 	if tick() >= nextSpeech then
 		nextSpeech = tick() + math.random(CONFIG.SpeechMinDelay, CONFIG.SpeechMaxDelay)
 		local phrase = PHRASES[math.random(1, #PHRASES)]
@@ -204,11 +247,10 @@ RunService.Heartbeat:Connect(function(dt)
 		local head = companion:FindFirstChild("Head")
 		if head then
 			bubble.Parent = head
-			game:GetService("Debris"):AddItem(bubble, CONFIG.SpeechBubbleDuration)
+			Debris:AddItem(bubble, CONFIG.SpeechBubbleDuration)
 		end
 	end
 
-	-- Look at player occasionally
 	if dist < CONFIG.LookAtDistance and tick() >= nextLook then
 		nextLook = tick() + CONFIG.LookCheckInterval
 		if math.random() < CONFIG.LookChance then
@@ -217,4 +259,4 @@ RunService.Heartbeat:Connect(function(dt)
 	end
 end)
 
-print("Companion NPC 'Mey ♥' is active.")
+print("✅ Mey ♥ (R6) activo y siguiéndote.")

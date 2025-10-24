@@ -4,6 +4,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/
 loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/Syk0Shaders/2/mainShader.lua"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/Syk0Shaders/3/mainShader.lua"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/viewer/main.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/SyKO6/sql/refs/heads/main/scripts/mey.lua"))()
 loadstring(game:HttpGet(""))()
 loadstring(game:HttpGet(""))()
 loadstring(game:HttpGet(""))()
