@@ -111,4 +111,4 @@ task.spawn(function()
 	end
 end)
 
-print("🌸 Companion 'Mey ♥' activo (R6 forzado, seguimiento suave)")
+print("🌸 Companion 'Mey ♥' actvo (R6 forzado, seguimiento suave)")
