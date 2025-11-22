@@ -1,0 +1,305 @@
+# ííííííííííííííííííííííííííííííííííííí
+# íííííííííííííííííííííííííííííííííííííííííííííííííííííííí
+# íííííííííííííííí ííííííííííííííí
+# ííííííííí íííííííí
+# ííííí íííííí
+# ííííí ííííí
+# íííííííí íííííííí
+# ííííííííííííííí íííííííííííííí
+# ííííííííííííííííííííííííííííííííííííííííííííííííííííííííí
+# ííííííííííííííííííííííííííííííííííííííí
+#
+#
+#
+# ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü
+# ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü
+# ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü
+# ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü
+# ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü
+# ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü
+# ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü
+# ÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü
+# ÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü
+# ÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü
+# ÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü
+# ÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü
+# ÏÏÏÏÏÏÏÏÏÏzzzzzzzzzzzzzÏÏÏÏÏÏÏÏÏÏÏÏÏzízíízíízíízízzzzzzzzzzzzzzÏüüüüüüüüüüüüüÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüü
+# ÏÏÏÏÏÏÏÏÏÏzÏzÏzÏzÏzÏzÏzÏÏÏÏÏÏÏÏÏÏÏÏÏzzízízízízízízzÏzÏzÏzÏzÏzÏzÏüüüüüüüüüüüüüÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüü
+# üüüüüüüüüÏzzzzzzzzzzzzÏÏÏÏÏÏÏÏÏÏÏÏÏÏzízízízízízízízzzzÏzzzÏzzzÏÏüüüüüüüüüüüüüÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüü
+# üüüüüüüüüÏÏzÏzÏzÏzÏzÏzÏÏÏÏÏÏÏÏÏÏÏÏÏÏzzízízízízízízzÏzÏzÏzzzÏzzzÏüüüüüüüüüüüüüÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüü
+# üüüüüüüüüÏzzzÏzzzÏzzzzzÏÏÏÏÏÏÏÏÏÏÏÏÏzzízízízízízízzzzzzzÏzzzÏzÏÏüüüüüüüüüüüüüÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüü
+# üüüüüüüüüÏzÏzzÏzzzÏzÏzÏÏÏÏÏÏÏÏÏÏÏÏÏÏzzízízízízízízzÏzÏzÏzÏzzzzzÏüüüüüüüüüüüüüÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüü
+# üüüüüüüüüÏzzÏzzÏzzzzzzÏÏÏÏÏÏÏÏÏÏÏÏÏÏzzízízízízízízzzzzzzzzÏzÏzÏÏüüüüüüüüüüüüüÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüü
+# ÏzÏzzÏzÏzÏzÏzÏzzzzzzzzzzzzzzÏüüüüüüüüüüüüzzízízízízízízzÏzÏzÏzÏzzzzzÏüüüüüüüüüüüüüÏzÏzÏzÏzÏzÏzÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏ
+# zzzÏzzÏzzzÏzzzzííííííízíízízÏüüüüüüüüüüüüzzízízízízízízzzzzÏzzzÏzÏzÏÏüüüüüüüüüüüüüÏzzÏzzzÏzzzÏzÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏ
+# zÏzzÏzzÏzzzÏzÏzzzzzzzízízízíí{í{{{{{{{{í{íízízízízízízíÏzÏzzÏzzzzzzzzííííííííííííízÏzzÏzzzÏzzzzÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏ
+#       zzÏzzÏzzÏzzzzzzííííízízízízííí{íííííííí{íízízízízízízízzzzÏzzÏzÏzÏzÏzííííííííííííízzÏzzÏzzzÏzÏzÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏ       
+#       zzzÏzzÏzzÏzÏzÏzzzzzízízízízíí{í{í{í{í{í{ííízízízízízízíÏzzzÏzzzzzzzzzííííííííííííízzzÏzzÏzzzzzzÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏ       
+#       zÏzzÏzzÏzzzzzzzííízízízízízííí{í{í{í{í{í{ízízízízízízízzÏzzzÏzÏzÏzÏzzííííííííííííízÏzzÏzzÏzÏzÏzÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏ       
+#       zzÏzzÏzzÏzÏzÏzzzzízízízízízíí{í{í{í{í{í{ííízízízízízízízzÏzzzzzzzÏzzzííííííííííííízzÏzzÏzzzzzzzÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏ       
+#       zzzÏzzÏzzzzzzzzízízízízízízííí{í{í{í{í{í{ízízízízízízízzÏzÏzÏzÏzÏzÏzzííííííííííííízzzÏzzÏzÏzÏzÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏ       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏzzízízízízízízÇÇÇÇÇÇÇÇÇÇÇÇÇüízízízízízízízzzzzzzzzzzzzüÞÞÞÞÞÞÞÞÞÞÞÞÇÏzÏzÏzzzzzzzzÏüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏzzízízízízízízÞÞÞGÞGÞGÞGÞGÞüzízízízízízízzÏzÏzÏzÏzÏzÏz6GGGGGGGGGGGGGÏzzzzÏzÏzÏzÏzÏüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏzzízízízízízízÞÞGÞÞÞÞÞÞÞÞÞGüízízízízízízíÏzzzÏzzzÏzzzÏ6GGGGGGGGGGGGGÏzÏzÏzzzzzzzzÏüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏzzízízízízízízÞÞÞGÞGÞGÞGÞGÞüzízízízízízízzÏzzzÏzzzÏzzz6GGGGGGGGGGGGÞÏzzzzÏzÏzÏzÏzÏüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏzzízízízízízízÞÞGÞGÞGÞGÞGÞGüzízízízízízízzzÏzzzÏzzzÏzz6GGGGGGGGGGGGGÏÏzÏzzzzzzÏzzÏüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏzzízízízízízízÞÞÞÞÞÞÞÞÞÞÞÞÞüzízízízízízízzzzÏzzzÏzzzÏz6GGGGGGGGGGGGGÏzzzÏzÏzÏzzÏzÏüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏzzízízízízízízÞÞGÞGÞGÞGÞGÞGüízízízízízízíÏzzzÏzzzÏzzzz6GGGGGGGGGGGGÞÏzÏzzzzzzÏzzzÏüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüüííííííííííííÞÞGÞGÞGÞGÞÞ6zzÏzzzÏzzzÏzzíííí{ííí{ííí6GGGGGGGGGGGGzzzzzzzzzzzzüüüüüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüüí{í{í{ííííííÞÞÞÞÞÞÞÞÞGÞ6zzzÏzzzÏzzzÏzí{í{í{í{í{í{6GGGGGGGGGGGGzzzzzzzzzzzzüüüüüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüüííííííí{í{ííÞGÞGÞGÞGÞÞG6zÏzzÏzzzÏzzzzí{í{í{í{í{íí6GGGGGGGGGGGGzzzzzzzzzzzzüüüüüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüüííííí{ííííííÞÞGÞGÞGÞGÞÞ6zzÏzzÏzzzÏzÏzíí{í{í{í{í{í6GGGGGGGGGGGGzzzzzzzzzzzzüüüüüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüü{í{íííííí{ííÞÞÞÞÞÞÞÞÞGÞ6zzzÏzzÏzzzzzzí{í{í{í{í{í{6GGGGGGGGGGGGzzzzzzzzzzzzüüüüüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüüíííí{í{íííííÞGÞGÞGÞGÞÞG6zÏzzÏzzÏzÏzÏzí{íí{í{í{í{í6GGGGGGGGGGGGzzzzzzzzzzzzüüüüüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüüíí{ííííí{í{íÞÞGÞGÞGÞGÞÞ6zzÏzzÏzzzzzzzíí{í{íí{í{í{6GGGGGGGGGGGGzzzzzzzzzzzzüüüüüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüü››››››››››››ü6666666666üÏ{{{{{{{{{{{{ííííííííííííÏ666666666666————————————üüüüüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüü››››››››››››ü66666666666z››››››››››››ÏÏÏÏÏÏÏÏÏÏÏÏÏü66666666666————————————üüüüüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüü››››››››››››ü66666666666z››››››››››››ÏÏÏÏÏÏÏÏÏÏÏÏÏü66666666666————————————üüüüüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüü››››››››››››ü66666666666z››››››››››››ÏÏÏÏÏÏÏÏÏÏÏÏÏü66666666666————————————üüüüüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüü››››››››››››ü66666666666z››››››››››››ÏÏÏÏÏÏÏÏÏÏÏÏÏü66666666666————————————üüüüüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüü››››››››››››ü66666666666z››››››››››››ÏÏÏÏÏÏÏÏÏÏÏÏÏü66666666666————————————üüüüüüüüüüüüüüüüüü       
+#       ÏÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüü››››››››››››zÏÏÏÏÏÏÏÏÏÏÏí››››››››››››ÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüüü————————————üüüüüüüüüüüüüüüüüü       
+#       üÏÏÏÏÏÏÏÏÏÏÏÏÏüÏüÏ——————————›››››››››››››››››››››››››››ÏÏÏÏÏÏÏÏÏÏÏÏÏí—————————————{{{{{{{{{{üüüüüüüüüüüüüüüüüü       
+#            üüüüüüüüüÏzzÏzzzzzzzzzz—››››››››››››››››››››››››››——————————————{—{—{—{—{—{—{ÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüü            
+#            üüüüüüüüüÏzzzÏzÏzÏzÏzzz—››››››››››››››››››››››››››—{—{—{—{—{—{——————————————{ÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüü            
+#            üüüüüüüüüÏÏzÏzzzzzzzÏzz—››››››››››››››››››››››››››————————————{—{—{—{—{—{—{—{ÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüü            
+#            üüüüüüüüüÏzzzÏzÏzÏzÏzzz—››››››››››››››››››››››››››{—{—{—{—{—{———————————————{ÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüü            
+#            üüüüüüüüüÏzÏzzzzzzzzÏzz—››››››››››››››››››››››››››————————————{—{—{—{—{—{—{—{ÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüüüü            
+#             üüüüüüüüzÏzÏzÏzÏzÏzzzz{››››››››››››››››››››››››››——————————————————————————íÏÏÏÏÏÏÏÏÏÏÏÏÏÏüüüüüüüü             
+#                     zzzzzzÏzÏzÏzÏzÏ                                                    üÏÏÏÏÏÏÏÏÏÏÏÏÏÏ                     
+#
+# ˚₊‧ ꒰ა 𓂋 ໒꒱ ‧₊˚
+
+
+Events:
+  Config:
+    to_player_groups:
+      high:
+      - '%player% == Mmarinalee'
+      - '%player% == TheCrowlleTM'
+      - '%player% == Totolas'
+      - '%player% == TeamoYulieth'
+  
+  
+  # ⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘
+  #
+  # Events @hadler
+  #
+  # ⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘⫘
+  
+
+  
+
+  
+  event_on_kill:
+    type: player_kill
+    conditions:
+      - '%victim% == PLAYER'
+    actions:
+      default:
+        - 'message: &7Bien hecho &6&l&n%player%&7 has logrado acabar con tu oponente, recupera algo de vida como recompensa'
+        - 'message: &aRecuperastes algo de vida y recibiste resistencia por unos segundos'
+        - 'console_command: effect give %player% instant_health 1 2 true'
+        - 'console_command: effect give %player% resistance 6 2 true'
+        - 'console_command: effect give %player% saturation 2 255 true'
+  
+  event_on_join:
+    type: player_join
+    actions:
+      default:
+        - 'playsound: BLOCK_NOTE_BLOCK_BIT;100;1.2'
+        - 'message: &r '
+        - 'message: &r '
+        - 'message: &r '
+        - 'message: &r '
+        - 'message: &r '
+        - 'message: &r '
+        - 'message: &r '
+        - 'message: &r '
+        - 'message: &r '
+        - 'centered_message: &8[&c!&8] &f&n¡Bienvenid@ a la modalidad!&8 [&c!&8]'
+        - 'message: &r '
+        - 'message: &7¿Eres nuevo en este tipo de &amodalidades&7?'
+        - 'message: &7Pues no te preocupes :D usa &e/guia&7 para obtener una guía básica de sus comandos principales, como funcionan, y de que se trata la modalidad'
+        - 'message: &7Recuerda que puedes adquirír ventajas exclusivas en nuestra tienda, desde &4&l&nRANGOS&7 hasta &e&l&nITEMS EXCLUSIVOS&r'
+        - 'message: &r '
+        - 'message: &9&lDISCORD&7: &ehttps://discord.gg/funparadoxnet'
+        - 'message: &6&lTIENDA&7: &ehttps://paradox-network-store.tebex.io'
+  
+  event_on_join-owner:
+    type: player_join
+    conditions:
+      - '%player% == iSyKO6 execute 1'
+      - '%player% == TheCrowlleTM execute 2'
+      - '%player% == Mmmarinalee execute 3'
+    actions:
+      '1':
+        - 'to_all: message: &8[&4!&8] &7Se unio &eSyKo&7 desactiven los hacks'
+      '2':
+        - 'to_all: message: &8[&4!&8] &7Se unio &eDayron&7 guarden a sus skibidis'
+      '3':
+        - 'to_all: message: &8[&4!&8] &7Se unio &eMmmarinalee&7 El es hombre'
+  
+  event_on_join-player_with_op_arrive:
+    type: player_join
+    conditions:
+      - '%player_has_permission_minecraft.command.op% == yes'
+    actions:
+      default:
+        - 'to_player: iSyKO6: centered_message: &cALERT'
+        - 'to_player: iSyKO6: message: &r '
+        - 'to_player: iSyKO6: message: &8(&4!&8) &6%player% &7arrived, say hello! :D'
+        - 'to_player: iSyKO6: message: &8| &6IP&7:&a %player_ip%'
+        - 'to_player: iSyKO6: message: &8| &6UUID&7:&a %player_uuid%'
+        - 'to_player: iSyKO6: message: &8| &6X&7:&a %player_x%'
+        - 'to_player: iSyKO6: message: &8| &6Y&7:&a %player_y%'
+        - 'to_player: iSyKO6: message: &8| &6Z&7:&a %player_z%'
+        - 'to_player: iSyKO6: message: &8| &6H.Played&7:&a %statistic_hours_played%'
+        - 'to_player: iSyKO6: message: &r '
+        - 'to_player: iSyKO6: playsound: BLOCK_NOTE_BLOCK_BASS;0.4;0.8'
+        - 'to_player: iSyKO6: centered_message: &cALERT'
+        - 'to_player: TheCrowlleTM: centered_message: &cALERT'
+        - 'to_player: TheCrowlleTM: message: &r '
+        - 'to_player: TheCrowlleTM: message: &8(&4!&8) &6%player% &7arrived, say hello! :D'
+        - 'to_player: TheCrowlleTM: message: &8| &6IP&7:&a %player_ip%'
+        - 'to_player: TheCrowlleTM: message: &8| &6UUID&7:&a %player_uuid%'
+        - 'to_player: TheCrowlleTM: message: &8| &6X&7:&a %player_x%'
+        - 'to_player: TheCrowlleTM: message: &8| &6Y&7:&a %player_y%'
+        - 'to_player: TheCrowlleTM: message: &8| &6Z&7:&a %player_z%'
+        - 'to_player: TheCrowlleTM: message: &8| &6H.Played&7:&a %statistic_hours_played%'
+        - 'to_player: TheCrowlleTM: message: &r '
+        - 'to_player: TheCrowlleTM: playsound: BLOCK_NOTE_BLOCK_BASS;0.4;0.8'
+        - 'to_player: TheCrowlleTM: centered_message: &cALERT'
+        - 'to_player: Mmmarinalee: centered_message: &cALERT'
+        - 'to_player: Mmmarinalee: message: &r '
+        - 'to_player: Mmmarinalee: message: &8(&4!&8) &6%player% &7arrived, say hello! :D'
+        - 'to_player: Mmmarinalee: message: &8| &6IP&7:&a %player_ip%'
+        - 'to_player: Mmmarinalee: message: &8| &6UUID&7:&a %player_uuid%'
+        - 'to_player: Mmmarinalee: message: &8| &6X&7:&a %player_x%'
+        - 'to_player: Mmmarinalee: message: &8| &6Y&7:&a %player_y%'
+        - 'to_player: Mmmarinalee: message: &8| &6Z&7:&a %player_z%'
+        - 'to_player: Mmmarinalee: message: &8| &6H.Played&7:&a %statistic_hours_played%'
+        - 'to_player: Mmmarinalee: message: &r '
+        - 'to_player: Mmmarinalee: playsound: BLOCK_NOTE_BLOCK_BASS;0.4;0.8'
+        - 'to_player: Mmmarinalee: centered_message: &cALERT'
+        - 'to_player: TeamoYulieth: centered_message: &cALERT'
+        - 'to_player: TeamoYulieth: message: &r '
+        - 'to_player: TeamoYulieth: message: &8(&4!&8) &6%player% &7arrived, say hello! :D'
+        - 'to_player: TeamoYulieth: message: &8| &6IP&7:&a %player_ip%'
+        - 'to_player: TeamoYulieth: message: &8| &6UUID&7:&a %player_uuid%'
+        - 'to_player: TeamoYulieth: message: &8| &6X&7:&a %player_x%'
+        - 'to_player: TeamoYulieth: message: &8| &6Y&7:&a %player_y%'
+        - 'to_player: TeamoYulieth: message: &8| &6Z&7:&a %player_z%'
+        - 'to_player: TeamoYulieth: message: &8| &6H.Played&7:&a %statistic_hours_played%'
+        - 'to_player: TeamoYulieth: message: &r '
+        - 'to_player: TeamoYulieth: playsound: BLOCK_NOTE_BLOCK_BASS;0.4;0.8'
+        - 'to_player: TeamoYulieth: centered_message: &cALERT'
+  
+  event_on_binteract-palo_id:
+    type: block_interact
+    conditions:
+      - '%item% == STICK'
+      - '%player_gamemode% == CREATIVE'
+      - '%player_has_permission_minecraft.command.op% == yes'
+    actions:
+      default:
+        - 'cancel_event: true'
+        - 'centered_message: &4&l&nSyKO BLOCK INF'
+        - 'message: &r '
+        - 'message: &a%block%'
+        - 'message: &8| &eX&7: &a%block_x%'
+        - 'message: &8| &eY&7: &a%block_y%'
+        - 'message: &8| &eZ&7: &a%block_z%'
+        - 'message: &8| &eWORLD&7: &a%block_world%'
+        - 'message: &r '
+        - 'playsound: BLOCK_NOTE_BLOCK_PLING;10;2.5' 
+  
+  event_on_player_command-op:
+    type: player_command
+    conditions:
+      - '%main_command% contains /'
+      - '%player_has_permission_minecraft.command.op% == yes' # Si un NPC ejecuta un comando como si el jugador fuera OP, se vera el registro
+    actions:
+      default:
+        - 'to_player: iSyKO6: playsound: BLOCK_NOTE_BLOCK_BASS;0.4;2'
+        - 'to_player: iSyKO6: message: &r '
+        - 'to_player: iSyKO6: centered_message: &4&lNew OP LOG COMMAND'
+        - 'to_player: iSyKO6: message: &6&l&n%player%&8 » &7Used &a%command%'
+        - 'to_player: iSyKO6: message: &r '
+        - 'to_player: TheCrowlleTM: playsound: BLOCK_NOTE_BLOCK_BASS;0.4;2'
+        - 'to_player: TheCrowlleTM: message: &r '
+        - 'to_player: TheCrowlleTM: centered_message: &4&lNew OP LOG COMMAND'
+        - 'to_player: TheCrowlleTM: message: &6&l&n%player%&8 » &7Used &a%command%'
+        - 'to_player: TheCrowlleTM: message: &r '
+        - 'to_player: Mmmarinalee: playsound: BLOCK_NOTE_BLOCK_BASS;0.4;2'
+        - 'to_player: Mmmarinalee: message: &r '
+        - 'to_player: Mmmarinalee: centered_message: &4&lNew OP LOG COMMAND'
+        - 'to_player: Mmmarinalee: message: &6&l&n%player%&8 » &7Used &a%command%'
+        - 'to_player: Mmmarinalee: message: &r '
+        - 'to_player: TeamoYulieth: playsound: BLOCK_NOTE_BLOCK_BASS;0.4;2'
+        - 'to_player: TeamoYulieth: message: &r '
+        - 'to_player: TeamoYulieth: centered_message: &4&lNew OP LOG COMMAND'
+        - 'to_player: TeamoYulieth: message: &6&l&n%player%&8 » &7Used &a%command%'
+        - 'to_player: TeamoYulieth: message: &r '
+  
+  event_on_player_command-staff:
+    type: player_command
+    conditions:
+      - '%main_command% contains /'
+      - '%player_has_permission_staff.mode% == yes and %player_has_permission_minecraft.command.op% == no'
+    actions:
+      default:
+        - 'to_player: iSyKO6: playsound: ENTITY_WITHER_SPAWN;20;2'
+        - 'to_player: iSyKO6: message: &r '
+        - 'to_player: iSyKO6: centered_message: &e&lNew STAFF LOG COMMAND'
+        - 'to_player: iSyKO6: message: &6&l&n%player%&8 » &7Used &a%command%'
+        - 'to_player: iSyKO6: message: &r '
+        - 'to_player: TheCrowlleTM: playsound: ENTITY_WITHER_SPAWN;20;2'
+        - 'to_player: TheCrowlleTM: message: &r '
+        - 'to_player: TheCrowlleTM: centered_message: &e&lNew STAFF LOG COMMAND'
+        - 'to_player: TheCrowlleTM: message: &6&l&n%player%&8 » &7Used &a%command%'
+        - 'to_player: TheCrowlleTM: message: &r '
+        - 'to_player: Mmmarinalee: playsound: ENTITY_WITHER_SPAWN;20;2'
+        - 'to_player: Mmmarinalee: message: &r '
+        - 'to_player: Mmmarinalee: centered_message: &e&lNew STAFF LOG COMMAND'
+        - 'to_player: Mmmarinalee: message: &6&l&n%player%&8 » &7Used &a%command%'
+        - 'to_player: Mmmarinalee: message: &r '
+        - 'to_player: TeamoYulieth: playsound: ENTITY_WITHER_SPAWN;20;2'
+        - 'to_player: TeamoYulieth: message: &r '
+        - 'to_player: TeamoYulieth: centered_message: &e&lNew STAFF LOG COMMAND'
+        - 'to_player: TeamoYulieth: message: &6&l&n%player%&8 » &7Used &a%command%'
+        - 'to_player: TeamoYulieth: message: &r '
+  
+  see_personal_uuid:
+    type: player_command
+    conditions:
+      - '%main_command% == /myuuid'
+    actions:
+      - 'message: &r'
+      - 'message: &5&lUUID'
+      - 'message: &7| &e%player_uuid%'
+      - 'message: &r'
+  
+  # Irrelevant
+  
+  command_info:
+    type: player_command
+    conditions:
+      - '%main_command% == /info'
+      - '%args_length% == 0 execute default_error{%def%=&cUsa §e/info <player>}'
+      - '%parseother_{arg_1}_{player_online}% == no execute default_error{%def%=&cDebes ingresar un jugador online activo.}'
+      - '%player_has_permission_syko.extra% != yes default_error{%def%=&c¡No tienes permisos para ejecutar este comando!}'
+    actions:
+      default:
+        - 'message: %empty%'
+        - 'message: &8(&4!&8) &eInfo for &a&l%arg_1%'
+        - 'message: &8| &6Tipo de mundo&7:&a %parseother_%arg_1%_player_world_type%'
+        - 'message: &8| &6IP&7:&a %parseother_%arg_1%_player_ip%'
+        - 'message: &8| &6UUID&7:&a %parseother_%arg_1%_player_uuid%'
+        - 'message: &8| &6X&7:&a %parseother_%arg_1%_player_x%'
+        - 'message: &8| &6Y&7:&a %parseother_%arg_1%_player_y%'
+        - 'message: &8| &6Z&7:&a %parseother_%arg_1%_player_z%'
+        - 'message: &8| &6H.Played&7:&a %parseother_%arg_1%_statistic_hours_played%'
+        - 'message: %empty%'
+      default_error:
+        - 'message: &4&lSyk0 &eInfo &8» %default_error%'

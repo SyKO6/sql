@@ -12,8 +12,8 @@ local Workspace = workspace
 local player = Players.LocalPlayer
 
 -- ========== CONFIG ==========
-local normalSpeed = 18.8
-local crawlSpeed = 10.8
+local normalSpeed = 17.4
+local crawlSpeed = 9.4
 local beastSpeed = 18.8
 local fov = 75
 
