@@ -131,7 +131,7 @@ local lastColorState = setmetatable({}, {__mode = "k"}) -- weak keys (screen -> 
 local visualChances = {}  -- player -> visualChance
 
 -- TEMMIE config
-local TEMMIE_IMAGE_ID = "rbxassetid://109259074615013"
+local TEMMIE_IMAGE_ID = "rbxassetid://106452528796091"
 local OFFSET_Y = -1
 local TEMMIE_WIDTH = 86
 local TEMMIE_HEIGHT = TEMMIE_WIDTH * (2496 / 1920)

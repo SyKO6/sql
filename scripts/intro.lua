@@ -26,7 +26,7 @@ local image = Instance.new("ImageLabel", introGui)
 image.Size = UDim2.new(0, 200, 0, 200)
 image.Position = UDim2.new(0.5, -100, 0.5, -100)
 image.BackgroundTransparency = 1
-image.Image = "rbxassetid://72716486473113"
+image.Image = "rbxassetid://94664845828123"
 image.ScaleType = Enum.ScaleType.Fit
 image.ClipsDescendants = true
 
